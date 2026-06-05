@@ -1,0 +1,69 @@
+{
+  "name": "sap-cap-p2p",
+  "version": "1.0.0",
+  "description": "SAP CAP full stack Procure-to-Pay application",
+  "private": true,
+  "scripts": {
+    "start": "cds serve",
+    "watch": "cds watch",
+    "deploy": "cds deploy --to sqlite",
+    "lint:ui5": "cd app/p2p-ui && ui5lint",
+    "test": "npm run deploy"
+  },
+  "dependencies": {
+    "@cap-js/sqlite": "^2.4.0",
+    "@sap/cds": "^9.9.1",
+    "@sap/xssec": "^4.2.8",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^9.9.2",
+    "@ui5/cli": "^4.0.16",
+    "@ui5/linter": "^1.21.2",
+    "cds-plugin-ui5": "^0.12.0"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "db.sqlite"
+        }
+      },
+      "auth": {
+        "[development]": {
+          "kind": "mocked",
+          "users": {
+            "admin": {
+              "password": "admin",
+              "roles": ["Admin", "authenticated-user"]
+            },
+            "jsmith": {
+              "password": "jsmith",
+              "roles": ["ProcurementOfficer", "authenticated-user"]
+            },
+            "qinspector": {
+              "password": "qinspector",
+              "roles": ["QCInspector", "authenticated-user"]
+            },
+            "grofficer": {
+              "password": "grofficer",
+              "roles": ["GoodsReceiptOfficer", "authenticated-user"]
+            },
+            "finance": {
+              "password": "finance",
+              "roles": ["FinanceOfficer", "authenticated-user"]
+            },
+            "viewer": {
+              "password": "viewer",
+              "roles": ["Viewer", "authenticated-user"]
+            }
+          }
+        }
+      }
+    },
+    "odata": {
+      "version": "v4"
+    }
+  }
+}

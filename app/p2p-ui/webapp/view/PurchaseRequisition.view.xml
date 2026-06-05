@@ -1,0 +1,28 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.PurchaseRequisition">
+  <Page title="Purchase Requisitions" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Button text="Create PR" type="Emphasized" press=".onCreatePR" class="sapUiSmallMarginBottom" />
+      <Table inset="false" items="{/PurchaseRequisitions}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Open Purchase Requisitions" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="PR Number" /></Column>
+          <Column><Text text="Status" /></Column>
+          <Column><Text text="Requested On" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{prNo}" />
+              <Text text="{status}" />
+              <Text text="{requestDate}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

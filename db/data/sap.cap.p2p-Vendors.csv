@@ -1,0 +1,5 @@
+ID;vendorNo;name;accountGroup;purchOrg;country;city;language;telephone;email;paymentTerms;currency;taxNo;incoterms;bankKey;bankAccount;status
+aaaaaaaa-1111-1111-1111-111111111111;V-10001;Alpha Supplies Ltd;DOM;1000;IN;Bengaluru;EN;+91-80-1001;alpha@example.com;Z030;USD;TAX10001;FOB;HDFC0001;100010001;Active
+aaaaaaaa-2222-2222-2222-222222222222;V-10002;Beta Industrial Co;DOM;1000;IN;Pune;EN;+91-20-1002;beta@example.com;Z014;USD;TAX10002;CIF;ICIC0002;100010002;Active
+aaaaaaaa-3333-3333-3333-333333333333;V-10003;Gamma Corporation;DOM;1000;IN;Mumbai;EN;+91-22-1003;gamma@example.com;Z030;USD;TAX10003;FOB;SBIN0003;100010003;Active
+aaaaaaaa-4444-4444-4444-444444444444;V-10004;Delta Traders Ltd;DOM;1000;IN;Delhi;EN;+91-11-1004;delta@example.com;Z045;USD;TAX10004;EXW;UTIB0004;100010004;Active

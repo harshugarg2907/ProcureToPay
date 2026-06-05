@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Material">
+  <Page title="Material Master" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/Materials}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Material Catalog" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="Material No." /></Column>
+          <Column><Text text="Description" /></Column>
+          <Column><Text text="Base UoM" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{materialNo}" />
+              <Text text="{description}" />
+              <Text text="{baseUom}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

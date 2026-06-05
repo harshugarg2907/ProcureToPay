@@ -1,0 +1,5 @@
+ID;materialNo;description;materialType;materialGroup;baseUom;grossWeight;netWeight;purchasingGroup;plant;valuationClass;movingAvgPrice;minOrderQty;orderUnit;status
+bbbbbbbb-1111-1111-1111-111111111111;MAT-1001;Industrial Pump XL-200;ROH;PUMPS;EA;15.000;13.500;P01;1000;3000;250.00;1.000;EA;Active
+bbbbbbbb-2222-2222-2222-222222222222;MAT-2041;Spare Parts Kit Type-A;ROH;SPARES;SET;8.000;7.250;P01;1000;3000;420.00;1.000;SET;Active
+bbbbbbbb-3333-3333-3333-333333333333;MAT-3012;Control Valve CV-50;ROH;VALVES;PC;3.000;2.650;P01;1000;3000;150.00;1.000;PC;Active
+bbbbbbbb-4444-4444-4444-444444444444;MAT-4001;Industrial Fastener Set;ROH;FASTENERS;EA;0.500;0.450;P01;1000;3000;20.00;10.000;EA;Active

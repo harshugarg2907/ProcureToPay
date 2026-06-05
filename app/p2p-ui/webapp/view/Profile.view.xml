@@ -1,0 +1,15 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Profile">
+  <Page title="My Profile" class="sapUiResponsivePadding">
+    <content>
+      <VBox class="sapUiSmallMargin">
+        <ObjectHeader title="{session>/currentUser/fullName}" number="{session>/currentUser/userId}">
+          <attributes>
+            <ObjectAttribute text="{session>/currentUser/email}" />
+            <ObjectAttribute text="Company: {session>/currentUser/companyCode}" />
+            <ObjectAttribute text="Cost Center: {session>/currentUser/costCenter}" />
+          </attributes>
+        </ObjectHeader>
+      </VBox>
+    </content>
+  </Page>
+</mvc:View>

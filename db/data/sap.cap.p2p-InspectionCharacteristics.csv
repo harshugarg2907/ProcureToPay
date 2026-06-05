@@ -1,0 +1,3 @@
+ID;inspectionLot_ID;characteristicId;characteristicName;specification;actualValue;result
+ffffffff-aaaa-1111-1111-111111111111;ffffffff-1111-1111-1111-111111111111;C-001;Visual Inspection;No dents;Minor dents on 2;Accepted
+ffffffff-aaaa-2222-2222-222222222222;ffffffff-1111-1111-1111-111111111111;C-002;Pressure Test;10 bar;10 bar;Accepted

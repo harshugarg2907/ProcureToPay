@@ -1,0 +1,16 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Login">
+  <Page title="P2P Login" class="sapUiResponsivePadding">
+    <content>
+      <VBox class="sapUiSmallMarginTop sapUiSmallMarginBottom" alignItems="Center" justifyContent="Center">
+        <Title text="Procure-to-Pay" level="H1" />
+        <Text text="Sign in to continue to the P2P application." />
+        <VBox width="400px" class="sapUiMediumMarginTop">
+          <Input id="inputUser" placeholder="User ID" value="{path: 'session>/login/userId'}" />
+          <Input id="inputPassword" type="Password" placeholder="Password" value="{path: 'session>/login/password'}" />
+          <Button text="Log On" type="Emphasized" press=".onLogin" class="sapUiMediumMarginTop" />
+          <Text id="loginMessage" text="Enter one of: admin, jsmith, qinspector, grofficer, finance, viewer" wrapping="true" class="sapUiSmallMarginTop" />
+        </VBox>
+      </VBox>
+    </content>
+  </Page>
+</mvc:View>

@@ -1,0 +1,20 @@
+{
+  "xsappname": "sap-cap-p2p",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    { "name": "$XSAPPNAME.Admin", "description": "Admin access" },
+    { "name": "$XSAPPNAME.ProcurementOfficer", "description": "Procurement access" },
+    { "name": "$XSAPPNAME.QCInspector", "description": "Quality inspection access" },
+    { "name": "$XSAPPNAME.GoodsReceiptOfficer", "description": "Goods receipt access" },
+    { "name": "$XSAPPNAME.FinanceOfficer", "description": "Finance access" },
+    { "name": "$XSAPPNAME.Viewer", "description": "Read-only access" }
+  ],
+  "role-templates": [
+    { "name": "Admin", "description": "Admin", "scope-references": ["$XSAPPNAME.Admin"] },
+    { "name": "ProcurementOfficer", "description": "Procurement Officer", "scope-references": ["$XSAPPNAME.ProcurementOfficer"] },
+    { "name": "QCInspector", "description": "QC Inspector", "scope-references": ["$XSAPPNAME.QCInspector"] },
+    { "name": "GoodsReceiptOfficer", "description": "Goods Receipt Officer", "scope-references": ["$XSAPPNAME.GoodsReceiptOfficer"] },
+    { "name": "FinanceOfficer", "description": "Finance Officer", "scope-references": ["$XSAPPNAME.FinanceOfficer"] },
+    { "name": "Viewer", "description": "Viewer", "scope-references": ["$XSAPPNAME.Viewer"] }
+  ]
+}

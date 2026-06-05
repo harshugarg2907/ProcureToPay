@@ -1,0 +1,2 @@
+ID;paymentRunId;runDate;companyCode;paymentMethod;nextPaymentDate;status;totalPaymentAmount
+77777777-1111-1111-1111-111111111111;F110-20260605;2026-06-05;1000;T;2026-06-30;Proposal Created;14750.00

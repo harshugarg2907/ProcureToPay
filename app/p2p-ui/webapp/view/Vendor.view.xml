@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Vendor">
+  <Page title="Vendor Master" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/Vendors}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Vendor List" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="Vendor No." /></Column>
+          <Column><Text text="Name" /></Column>
+          <Column><Text text="Country" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{vendorNo}" />
+              <Text text="{name}" />
+              <Text text="{country}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

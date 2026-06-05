@@ -1,0 +1,2 @@
+ID;grNo;purchaseOrder_ID;inspectionLot_ID;postingDate;documentDate;plant;storageLocation;batch;totalGRValue;status
+99999999-1111-1111-1111-111111111111;GR-500001;eeeeeeee-1111-1111-1111-111111111111;ffffffff-1111-1111-1111-111111111111;2026-06-05;2026-06-05;1000;RM01;B-20260605;12000.00;Posted

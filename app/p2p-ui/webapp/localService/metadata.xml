@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:DataServices>
+    <Schema Namespace="sap.cap.p2p.ui" xmlns="http://docs.oasis-open.org/odata/ns/schema">
+      <EntityType Name="Users">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="userId" Type="Edm.String"/>
+        <Property Name="fullName" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="PurchaseRequisitions">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="prNo" Type="Edm.String"/>
+        <Property Name="status" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="RFQs">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="rfqNo" Type="Edm.String"/>
+        <Property Name="status" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="Vendors">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="vendorNo" Type="Edm.String"/>
+        <Property Name="name" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="Materials">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="materialNo" Type="Edm.String"/>
+        <Property Name="description" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="PurchaseOrders">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="poNo" Type="Edm.String"/>
+        <Property Name="status" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="GoodsReceipts">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="grNo" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="InspectionLots">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="inspectionLotNo" Type="Edm.String"/>
+        <Property Name="status" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="Invoices">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="invoiceNo" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="PaymentRuns">
+        <Key><PropertyRef Name="ID"/></Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false"/>
+        <Property Name="paymentRunId" Type="Edm.String"/>
+      </EntityType>
+      <EntityContainer Name="Container">
+        <EntitySet Name="Users" EntityType="sap.cap.p2p.ui.Users"/>
+        <EntitySet Name="PurchaseRequisitions" EntityType="sap.cap.p2p.ui.PurchaseRequisitions"/>
+        <EntitySet Name="RFQs" EntityType="sap.cap.p2p.ui.RFQs"/>
+        <EntitySet Name="Vendors" EntityType="sap.cap.p2p.ui.Vendors"/>
+        <EntitySet Name="Materials" EntityType="sap.cap.p2p.ui.Materials"/>
+        <EntitySet Name="PurchaseOrders" EntityType="sap.cap.p2p.ui.PurchaseOrders"/>
+        <EntitySet Name="GoodsReceipts" EntityType="sap.cap.p2p.ui.GoodsReceipts"/>
+        <EntitySet Name="InspectionLots" EntityType="sap.cap.p2p.ui.InspectionLots"/>
+        <EntitySet Name="Invoices" EntityType="sap.cap.p2p.ui.Invoices"/>
+        <EntitySet Name="PaymentRuns" EntityType="sap.cap.p2p.ui.PaymentRuns"/>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

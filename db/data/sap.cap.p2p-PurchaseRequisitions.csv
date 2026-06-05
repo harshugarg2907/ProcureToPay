@@ -1,0 +1,3 @@
+ID;prNo;requisitioner;purchasingOrg;documentType;requestDate;status;totalItems
+cccccccc-1111-1111-1111-111111111111;PR-1000001;jsmith;1000;NB;2026-06-01;Approved;1
+cccccccc-2222-2222-2222-222222222222;PR-1000002;jsmith;1000;NB;2026-06-03;Submitted;1

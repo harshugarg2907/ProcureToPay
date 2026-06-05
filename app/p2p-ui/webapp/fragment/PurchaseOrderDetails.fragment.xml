@@ -1,0 +1,8 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+  <VBox class="sapUiSmallMargin">
+    <Label text="Purchase Order Details" />
+    <Input placeholder="PO Number" />
+    <Input placeholder="Vendor" />
+    <Input placeholder="Delivery Date" />
+  </VBox>
+</core:FragmentDefinition>

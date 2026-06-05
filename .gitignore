@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# CAP build output
+gen/
+.cds-services.json
+
+# Local databases and generated persistence files
+*.db
+*.sqlite
+*.sqlite-*
+*.sqlite.backup-*
+db.sqlite
+db.sqlite.backup-*
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+default-env.json
+default-services.json
+
+# UI5 build output
+dist/
+resources/
+test-resources/
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,31 @@
+_schema-version: "3.3"
+ID: sap-cap-p2p
+version: 1.0.0
+description: SAP CAP Procure-to-Pay application
+
+modules:
+  - name: sap-cap-p2p-srv
+    type: nodejs
+    path: .
+    parameters:
+      buildpack: nodejs_buildpack
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: sap-cap-p2p-auth
+      - name: sap-cap-p2p-db
+
+resources:
+  - name: sap-cap-p2p-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+  - name: sap-cap-p2p-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared

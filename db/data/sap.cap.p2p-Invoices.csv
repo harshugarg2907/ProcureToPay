@@ -1,0 +1,2 @@
+ID;invoiceNo;vendor_ID;purchaseOrder_ID;goodsReceipt_ID;invoiceDate;postingDate;invoiceReference;currency;paymentTerms;netAmount;taxAmount;totalPayable;dueDate;matchStatus;status
+88888888-1111-1111-1111-111111111111;INV-300001;aaaaaaaa-1111-1111-1111-111111111111;eeeeeeee-1111-1111-1111-111111111111;99999999-1111-1111-1111-111111111111;2026-06-05;2026-06-05;4500001001;USD;Z030;12500.00;2250.00;14750.00;2026-06-30;Matched;Payment Advice Created

@@ -1,0 +1,2 @@
+ID;inspectionLotNo;inspectionType;purchaseOrder_ID;material_ID;vendor_ID;lotQuantity;acceptedQuantity;rejectedQuantity;usageDecisionCode;rejectionReason;status
+ffffffff-1111-1111-1111-111111111111;QI-700001;01;eeeeeeee-1111-1111-1111-111111111111;bbbbbbbb-1111-1111-1111-111111111111;aaaaaaaa-1111-1111-1111-111111111111;50.000;48.000;2.000;A1;Seal damage on two units;Partially Accepted
