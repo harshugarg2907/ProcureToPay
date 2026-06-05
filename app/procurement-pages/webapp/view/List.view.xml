@@ -1,0 +1,76 @@
+<mvc:View
+  controllerName="sap.cap.p2p.procurement.controller.List"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m">
+  <Page title="Procurement List Pages">
+    <headerContent>
+      <Button icon="sap-icon://home" tooltip="Dashboard" press=".openDashboard" />
+    </headerContent>
+    <content>
+      <IconTabBar class="sapUiResponsiveContentPadding" expandable="false">
+        <items>
+          <IconTabFilter key="pr" text="Requisitions" icon="sap-icon://request">
+            <Table growing="true" items="{/PurchaseRequisitions}">
+              <columns>
+                <Column><Text text="PR Number" /></Column>
+                <Column><Text text="Requisitioner" /></Column>
+                <Column><Text text="Purchasing Org" /></Column>
+                <Column><Text text="Status" /></Column>
+              </columns>
+              <items>
+                <ColumnListItem type="Navigation">
+                  <cells>
+                    <ObjectIdentifier title="{prNo}" />
+                    <Text text="{requisitioner}" />
+                    <Text text="{purchasingOrg}" />
+                    <ObjectStatus text="{status}" />
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+          </IconTabFilter>
+          <IconTabFilter key="rfq" text="RFQs" icon="sap-icon://request">
+            <Table growing="true" items="{/RFQs}">
+              <columns>
+                <Column><Text text="RFQ Number" /></Column>
+                <Column><Text text="Purchasing Org" /></Column>
+                <Column><Text text="Submission Date" /></Column>
+                <Column><Text text="Status" /></Column>
+              </columns>
+              <items>
+                <ColumnListItem type="Navigation">
+                  <cells>
+                    <ObjectIdentifier title="{rfqNo}" />
+                    <Text text="{purchasingOrg}" />
+                    <Text text="{submissionDeadline}" />
+                    <ObjectStatus text="{status}" />
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+          </IconTabFilter>
+          <IconTabFilter key="po" text="Purchase Orders" icon="sap-icon://sales-order">
+            <Table growing="true" items="{/PurchaseOrders}">
+              <columns>
+                <Column><Text text="PO Number" /></Column>
+                <Column><Text text="Vendor" /></Column>
+                <Column hAlign="End"><Text text="Net Value" /></Column>
+                <Column><Text text="Status" /></Column>
+              </columns>
+              <items>
+                <ColumnListItem type="Navigation">
+                  <cells>
+                    <ObjectIdentifier title="{poNo}" />
+                    <Text text="{vendor/name}" />
+                    <ObjectNumber number="{totalNetValue}" unit="INR" />
+                    <ObjectStatus text="{status}" />
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+          </IconTabFilter>
+        </items>
+      </IconTabBar>
+    </content>
+  </Page>
+</mvc:View>

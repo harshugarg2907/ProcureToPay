@@ -1,0 +1,12 @@
+{
+  "name": "procurement-pages",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "ui5lint"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^4.0.16",
+    "@ui5/linter": "^1.21.2"
+  }
+}

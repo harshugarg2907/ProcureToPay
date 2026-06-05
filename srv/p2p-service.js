@@ -6,24 +6,26 @@ const nextId = (prefix) => `${prefix}-${Date.now().toString().slice(-8)}`;
 module.exports = cds.service.impl(async function () {
   const {
     CurrentUser,
-    Users,
-    UserRoles,
     Vendors,
     Materials,
     PurchaseRequisitions,
-    PurchaseRequisitionItems,
     RFQs,
-    RFQVendors,
-    RFQItems,
     PurchaseOrders,
-    PurchaseOrderItems,
     InspectionLots,
     GoodsReceipts,
-    GoodsReceiptItems,
     Invoices,
-    PaymentRuns,
-    PaymentRunItems
+    PaymentRuns
   } = this.entities;
+  const {
+    Users,
+    UserRoles,
+    PurchaseRequisitionItems,
+    RFQVendors,
+    RFQItems,
+    PurchaseOrderItems,
+    GoodsReceiptItems,
+    PaymentRunItems
+  } = cds.entities('sap.cap.p2p');
 
   const getUserWithRoles = async (userId) => {
     let user = await SELECT.one.from(Users).where({ userId });
@@ -46,20 +48,6 @@ module.exports = cds.service.impl(async function () {
     const result = [user];
     result.$count = 1;
     return result;
-  });
-
-  this.before(['CREATE', 'UPDATE'], PurchaseRequisitionItems, (req) => {
-    const { quantity, deliveryDate, material_ID, plant } = req.data;
-    if (quantity !== undefined && Number(quantity) <= 0) req.error(400, 'Quantity must be greater than zero.');
-    if (deliveryDate && deliveryDate < today()) req.error(400, 'Delivery date cannot be in the past.');
-    if (!material_ID && req.event === 'CREATE') req.error(400, 'Material is mandatory.');
-    if (!plant && req.event === 'CREATE') req.error(400, 'Plant is mandatory.');
-  });
-
-  this.before(['CREATE', 'UPDATE'], [PurchaseOrderItems, GoodsReceiptItems], (req) => {
-    if (req.data.quantity !== undefined && Number(req.data.quantity) <= 0) {
-      req.error(400, 'Quantity must be positive.');
-    }
   });
 
   this.before(['CREATE', 'UPDATE'], [PurchaseOrders, GoodsReceipts, Invoices, PaymentRuns], (req) => {

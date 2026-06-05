@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Login</title>
+    <link rel="stylesheet" href="./login.css">
+    <script src="./login.js" defer></script>
+  </head>
+  <body>
+    <main class="login-shell">
+      <section class="login-panel" aria-labelledby="login-title">
+        <div class="login-brand">P2P</div>
+        <h1 id="login-title">P2P Login</h1>
+        <form id="loginForm" class="login-form">
+          <label for="userId">User</label>
+          <input id="userId" name="userId" type="text" value="admin" autocomplete="username">
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" value="admin" autocomplete="current-password">
+
+          <button id="loginButton" type="submit">Login</button>
+          <p id="loginMessage" class="login-message" role="alert"></p>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

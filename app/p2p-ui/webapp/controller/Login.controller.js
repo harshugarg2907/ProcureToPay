@@ -11,33 +11,40 @@ sap.ui.define([
       const oSession = oComponent.getModel("session");
       const sUserId = oSession.getProperty("/login/userId") || "viewer";
       const sPassword = oSession.getProperty("/login/password") || "";
-      const oODataModel = oComponent.getModel();
-
-      if (oODataModel && typeof oODataModel.changeHttpHeaders === "function" && sPassword) {
-        const sAuth = "Basic " + window.btoa(`${sUserId}:${sPassword}`);
-        oODataModel.changeHttpHeaders({ Authorization: sAuth });
-      }
 
       try {
-        const oUserData = await this._loadCurrentUser(oODataModel, sUserId);
+        const sAuth = "Basic " + window.btoa(`${sUserId}:${sPassword}`);
+        const oUserData = await this._loadCurrentUser(sUserId, sAuth);
+        sessionStorage.setItem("p2p.auth", JSON.stringify({
+          userId: sUserId,
+          authorization: sAuth
+        }));
+        this._applyAuthHeader(oComponent.getModel(), sAuth);
         oSession.setProperty("/currentUser", oUserData);
         this.getOwnerComponent().getRouter().navTo("launchpad", {}, true);
       } catch (error) {
+        sessionStorage.removeItem("p2p.auth");
         MessageBox.error(error.message || "Unable to load current user.");
       }
     },
 
-    _loadCurrentUser: async function (oODataModel, sUserId) {
-      if (!oODataModel || typeof oODataModel.bindContext !== "function") {
-        return models.getUserDefinition(sUserId);
+    _loadCurrentUser: async function (sUserId, sAuth) {
+      const oResponse = await fetch("/odata/v4/p2p/getCurrentUser", {
+        method: "POST",
+        headers: {
+          Authorization: sAuth,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: sUserId
+        })
+      });
+
+      if (!oResponse.ok) {
+        throw new Error("Invalid user ID or password.");
       }
 
-      const oBinding = oODataModel.bindContext("/getCurrentUser(...)");
-      oBinding.setParameter("userId", sUserId);
-      await oBinding.invoke("$direct");
-
-      const oContext = oBinding.getBoundContext();
-      const oUser = await oContext.requestObject();
+      const oUser = await oResponse.json();
       const aRoles = Array.isArray(oUser.roles)
         ? oUser.roles.map((role) => role.roleName || role).filter(Boolean)
         : models.getUserDefinition(sUserId).roles;
@@ -52,6 +59,14 @@ sap.ui.define([
         status: oUser.status,
         roles: aRoles
       };
+    },
+
+    _applyAuthHeader: function (oODataModel, sAuth) {
+      if (oODataModel && typeof oODataModel.changeHttpHeaders === "function") {
+        oODataModel.changeHttpHeaders({
+          Authorization: sAuth
+        });
+      }
     }
   });
 });

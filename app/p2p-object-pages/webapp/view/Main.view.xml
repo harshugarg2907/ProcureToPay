@@ -1,0 +1,76 @@
+<mvc:View
+  controllerName="sap.cap.p2p.objectpages.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f">
+  <App>
+    <pages>
+      <Page title="Object Pages" enableScrolling="false">
+        <content>
+          <f:FlexibleColumnLayout id="layout" layout="TwoColumnsMidExpanded">
+            <f:beginColumnPages>
+              <Page title="Master Data">
+                <content>
+                  <IconTabBar expandable="false">
+                    <items>
+                      <IconTabFilter key="vendors" text="Vendors" icon="sap-icon://supplier">
+                        <List mode="SingleSelectMaster" growing="true" selectionChange=".onVendorSelected" items="{/Vendors}">
+                          <items>
+                            <ObjectListItem title="{name}" number="{vendorNo}" intro="{city}" type="Navigation">
+                              <attributes>
+                                <ObjectAttribute title="Payment Terms" text="{paymentTerms}" />
+                                <ObjectAttribute title="Currency" text="{currency}" />
+                              </attributes>
+                              <firstStatus>
+                                <ObjectStatus text="{status}" />
+                              </firstStatus>
+                            </ObjectListItem>
+                          </items>
+                        </List>
+                      </IconTabFilter>
+                      <IconTabFilter key="materials" text="Materials" icon="sap-icon://product">
+                        <List mode="SingleSelectMaster" growing="true" selectionChange=".onMaterialSelected" items="{/Materials}">
+                          <items>
+                            <ObjectListItem title="{materialNo}" intro="{description}" number="{movingAvgPrice}" numberUnit="INR" type="Navigation">
+                              <attributes>
+                                <ObjectAttribute title="Group" text="{materialGroup}" />
+                                <ObjectAttribute title="Plant" text="{plant}" />
+                              </attributes>
+                              <firstStatus>
+                                <ObjectStatus text="{status}" />
+                              </firstStatus>
+                            </ObjectListItem>
+                          </items>
+                        </List>
+                      </IconTabFilter>
+                    </items>
+                  </IconTabBar>
+                </content>
+              </Page>
+            </f:beginColumnPages>
+            <f:midColumnPages>
+              <Page id="objectPage" title="Object Page">
+                <content>
+                  <ObjectHeader
+                    title="{detail>/title}"
+                    intro="{detail>/intro}"
+                    number="{detail>/number}"
+                    numberUnit="{detail>/numberUnit}">
+                    <attributes>
+                      <ObjectAttribute title="Status" text="{detail>/status}" />
+                      <ObjectAttribute title="Email" text="{detail>/email}" />
+                      <ObjectAttribute title="Payment Terms" text="{detail>/paymentTerms}" />
+                      <ObjectAttribute title="Material Group" text="{detail>/materialGroup}" />
+                      <ObjectAttribute title="Plant" text="{detail>/plant}" />
+                      <ObjectAttribute title="Base UoM" text="{detail>/baseUom}" />
+                    </attributes>
+                  </ObjectHeader>
+                </content>
+              </Page>
+            </f:midColumnPages>
+          </f:FlexibleColumnLayout>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>

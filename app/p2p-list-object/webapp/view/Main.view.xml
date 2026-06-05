@@ -1,0 +1,99 @@
+<mvc:View
+  controllerName="sap.cap.p2p.listobject.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f">
+  <App>
+    <pages>
+      <Page title="List Object Pages" enableScrolling="false">
+        <content>
+          <f:FlexibleColumnLayout id="layout" layout="TwoColumnsMidExpanded">
+            <f:beginColumnPages>
+              <Page title="Procurement Lists">
+                <content>
+                  <IconTabBar expandable="false" selectedKey="pr">
+                    <items>
+                      <IconTabFilter key="pr" text="Purchase Requisitions" icon="sap-icon://request">
+                        <Table growing="true" mode="SingleSelectMaster" selectionChange=".onRequisitionSelected" items="{/PurchaseRequisitions}">
+                          <columns>
+                            <Column><Text text="PR" /></Column>
+                            <Column><Text text="Requisitioner" /></Column>
+                            <Column><Text text="Status" /></Column>
+                          </columns>
+                          <items>
+                            <ColumnListItem type="Navigation">
+                              <cells>
+                                <ObjectIdentifier title="{prNo}" />
+                                <Text text="{requisitioner}" />
+                                <ObjectStatus text="{status}" />
+                              </cells>
+                            </ColumnListItem>
+                          </items>
+                        </Table>
+                      </IconTabFilter>
+                      <IconTabFilter key="rfq" text="RFQs" icon="sap-icon://request">
+                        <Table growing="true" mode="SingleSelectMaster" selectionChange=".onRFQSelected" items="{/RFQs}">
+                          <columns>
+                            <Column><Text text="RFQ" /></Column>
+                            <Column><Text text="Purchasing Org" /></Column>
+                            <Column><Text text="Status" /></Column>
+                          </columns>
+                          <items>
+                            <ColumnListItem type="Navigation">
+                              <cells>
+                                <ObjectIdentifier title="{rfqNo}" />
+                                <Text text="{purchasingOrg}" />
+                                <ObjectStatus text="{status}" />
+                              </cells>
+                            </ColumnListItem>
+                          </items>
+                        </Table>
+                      </IconTabFilter>
+                      <IconTabFilter key="po" text="Purchase Orders" icon="sap-icon://sales-order">
+                        <Table growing="true" mode="SingleSelectMaster" selectionChange=".onPOSelected" items="{/PurchaseOrders}">
+                          <columns>
+                            <Column><Text text="PO" /></Column>
+                            <Column><Text text="Vendor" /></Column>
+                            <Column hAlign="End"><Text text="Value" /></Column>
+                            <Column><Text text="Status" /></Column>
+                          </columns>
+                          <items>
+                            <ColumnListItem type="Navigation">
+                              <cells>
+                                <ObjectIdentifier title="{poNo}" />
+                                <Text text="{vendor/name}" />
+                                <ObjectNumber number="{totalNetValue}" unit="{currency}" />
+                                <ObjectStatus text="{status}" />
+                              </cells>
+                            </ColumnListItem>
+                          </items>
+                        </Table>
+                      </IconTabFilter>
+                    </items>
+                  </IconTabBar>
+                </content>
+              </Page>
+            </f:beginColumnPages>
+            <f:midColumnPages>
+              <Page id="detailPage" title="Object Page">
+                <content>
+                  <ObjectHeader
+                    title="{detail>/title}"
+                    number="{detail>/number}"
+                    numberUnit="{detail>/numberUnit}"
+                    intro="{detail>/intro}">
+                    <attributes>
+                      <ObjectAttribute title="Status" text="{detail>/status}" />
+                      <ObjectAttribute title="Purchasing Org" text="{detail>/purchasingOrg}" />
+                      <ObjectAttribute title="Company Code" text="{detail>/companyCode}" />
+                    </attributes>
+                  </ObjectHeader>
+                </content>
+              </Page>
+            </f:midColumnPages>
+          </f:FlexibleColumnLayout>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>

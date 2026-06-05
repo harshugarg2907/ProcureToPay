@@ -1,0 +1,115 @@
+<mvc:View
+  controllerName="sap.cap.p2p.transactional.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m">
+  <App>
+    <pages>
+      <Page title="Transactional Page">
+        <content>
+          <IconTabBar expandable="false" class="sapUiResponsiveContentPadding">
+            <items>
+              <IconTabFilter key="qc" text="Quality" icon="sap-icon://inspection">
+                <Table id="inspectionTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectInspectionLot" items="{/InspectionLots}">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title text="Inspection Lots" />
+                      <ToolbarSpacer />
+                      <Button text="Post Usage Decision" icon="sap-icon://accept" type="Emphasized" press=".onPostUsageDecision" />
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <columns>
+                    <Column><Text text="Lot" /></Column>
+                    <Column><Text text="Material" /></Column>
+                    <Column><Text text="Status" /></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem>
+                      <cells>
+                        <ObjectIdentifier title="{inspectionLotNo}" />
+                        <Text text="{material/materialNo}" />
+                        <ObjectStatus text="{status}" />
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+              <IconTabFilter key="gr" text="Goods Receipts" icon="sap-icon://shipping-status">
+                <Table growing="true" items="{/GoodsReceipts}">
+                  <columns>
+                    <Column><Text text="GR" /></Column>
+                    <Column><Text text="Posting Date" /></Column>
+                    <Column><Text text="Status" /></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem>
+                      <cells>
+                        <ObjectIdentifier title="{grNo}" />
+                        <Text text="{postingDate}" />
+                        <ObjectStatus text="{status}" />
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+              <IconTabFilter key="invoice" text="Invoices" icon="sap-icon://expense-report">
+                <Table id="invoiceTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectInvoice" items="{/Invoices}">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title text="Invoices" />
+                      <ToolbarSpacer />
+                      <Button text="Three-Way Match" icon="sap-icon://compare" press=".onRunThreeWayMatch" />
+                      <Button text="Payment Advice" icon="sap-icon://payment-approval" type="Emphasized" press=".onCreatePaymentAdvice" />
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <columns>
+                    <Column><Text text="Invoice" /></Column>
+                    <Column><Text text="Vendor" /></Column>
+                    <Column hAlign="End"><Text text="Payable" /></Column>
+                    <Column><Text text="Status" /></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem>
+                      <cells>
+                        <ObjectIdentifier title="{invoiceNo}" />
+                        <Text text="{vendor/name}" />
+                        <ObjectNumber number="{totalPayable}" unit="{currency}" />
+                        <ObjectStatus text="{status}" />
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+              <IconTabFilter key="payment" text="Payment Runs" icon="sap-icon://payment-approval">
+                <Table id="paymentTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectPaymentRun" items="{/PaymentRuns}">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title text="Payment Runs" />
+                      <ToolbarSpacer />
+                      <Button text="Execute Payment Run" icon="sap-icon://process" type="Emphasized" press=".onExecutePaymentRun" />
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <columns>
+                    <Column><Text text="Run" /></Column>
+                    <Column><Text text="Run Date" /></Column>
+                    <Column hAlign="End"><Text text="Amount" /></Column>
+                    <Column><Text text="Status" /></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem>
+                      <cells>
+                        <ObjectIdentifier title="{paymentRunId}" />
+                        <Text text="{runDate}" />
+                        <ObjectNumber number="{totalPaymentAmount}" />
+                        <ObjectStatus text="{status}" />
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+            </items>
+          </IconTabBar>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>
