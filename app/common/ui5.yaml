@@ -1,6 +1,6 @@
 specVersion: "4.0"
 metadata:
-  name: vendors-master
+  name: common
 type: application
 resources:
   configuration:
@@ -12,6 +12,3 @@ framework:
   libraries:
     - name: sap.m
     - name: sap.ui.core
-    - name: sap.f
-server:
-  customMiddleware: []

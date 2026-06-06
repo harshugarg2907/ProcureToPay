@@ -1,13 +1,32 @@
 (function () {
   "use strict";
 
-  var auth = JSON.parse(sessionStorage.getItem("p2p.auth") || "{}");
   var message = document.getElementById("message");
 
-  if (!auth.authorization) {
-    window.location.href = "/login-page/index.html";
+  if (!window.P2PAuth.requireAuth("/procurement-pages/index.html")) {
     return;
   }
+
+  window.P2PAuth.renderHeader("Procurement Pages");
+
+  var entity = new URLSearchParams(window.location.search).get("entity") || "PurchaseRequisitions";
+  var targetByEntity = {
+    PurchaseRequisitions: "prs",
+    RFQs: "rfqs",
+    PurchaseOrders: "pos"
+  };
+  var activeTarget = targetByEntity[entity] || "prs";
+
+  document.querySelectorAll(".tab,.panel").forEach(function (item) {
+    var target = item.dataset ? item.dataset.target : item.id;
+    var isActive = target === activeTarget || item.id === activeTarget;
+
+    if (target && target !== activeTarget && item.id !== activeTarget) {
+      item.hidden = true;
+    }
+
+    item.classList.toggle("active", isActive);
+  });
 
   document.querySelectorAll(".tab").forEach(function (tab) {
     tab.addEventListener("click", function () {
@@ -22,7 +41,7 @@
   }
 
   async function read(path) {
-    var response = await fetch("/odata/v4/p2p/" + path, { headers: { Authorization: auth.authorization } });
+    var response = await fetch("/odata/v4/p2p/" + path);
     if (!response.ok) throw new Error("Unable to load procurement data.");
     return response.json();
   }
@@ -33,30 +52,38 @@
     }).join("");
   }
 
-  Promise.all([
-    read("PurchaseRequisitions?$select=prNo,requisitioner,purchasingOrg,status"),
-    read("RFQs?$select=rfqNo,purchasingOrg,submissionDeadline,status"),
-    read("PurchaseOrders?$select=poNo,totalNetValue,status&$expand=vendor($select=name)")
-  ]).then(function (results) {
-    render("prsBody", results[0].value, [
+  if (activeTarget === "prs") {
+    read("PurchaseRequisitions?$select=prNo,requisitioner,purchasingOrg,status").then(function (result) {
+      render("prsBody", result.value, [
       function (row) { return row.prNo || ""; },
       function (row) { return row.requisitioner || ""; },
       function (row) { return row.purchasingOrg || ""; },
       function (row) { return row.status || ""; }
-    ]);
-    render("rfqsBody", results[1].value, [
+      ]);
+    }).catch(function (error) {
+      message.textContent = error.message;
+    });
+  } else if (activeTarget === "rfqs") {
+    read("RFQs?$select=rfqNo,purchasingOrg,submissionDeadline,status").then(function (result) {
+      render("rfqsBody", result.value, [
       function (row) { return row.rfqNo || ""; },
       function (row) { return row.purchasingOrg || ""; },
       function (row) { return row.submissionDeadline || ""; },
       function (row) { return row.status || ""; }
-    ]);
-    render("posBody", results[2].value, [
+      ]);
+    }).catch(function (error) {
+      message.textContent = error.message;
+    });
+  } else {
+    read("PurchaseOrders?$select=poNo,totalNetValue,status&$expand=vendor($select=name)").then(function (result) {
+      render("posBody", result.value, [
       function (row) { return row.poNo || ""; },
       function (row) { return row.vendor ? row.vendor.name : ""; },
       function (row) { return amount(row.totalNetValue); },
       function (row) { return row.status || ""; }
-    ]);
-  }).catch(function (error) {
-    message.textContent = error.message;
-  });
+      ]);
+    }).catch(function (error) {
+      message.textContent = error.message;
+    });
+  }
 }());

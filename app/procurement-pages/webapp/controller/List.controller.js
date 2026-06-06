@@ -5,7 +5,7 @@ sap.ui.define([
 
   return Controller.extend("sap.cap.p2p.procurement.controller.List", {
     openDashboard: function () {
-      window.location.href = "/dashboard/index.html";
+      window.location.href = "/home/index.html";
     }
   });
 });

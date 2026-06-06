@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P2P Dashboard</title>
     <link rel="stylesheet" href="./dashboard.css">
+    <script src="/common/browser-auth.js"></script>
     <script src="./dashboard.js" defer></script>
   </head>
   <body>
@@ -13,12 +14,12 @@
         <p class="eyebrow">Procure to Pay</p>
         <h1>P2P Dashboard</h1>
       </div>
-      <button id="logoutButton" type="button">Logout</button>
+      <div class="p2p-header-actions"></div>
     </header>
     <main class="page">
       <section class="tiles" aria-label="Navigation">
         <a class="tile" href="/procurement-pages/index.html"><span>Procurement</span><strong>PR, RFQ, PO lists</strong></a>
-        <a class="tile" href="/vendors-master/index.html"><span>Vendor Master</span><strong>Vendors, materials, orders</strong></a>
+        <a class="tile" href="/p2p-list-object/index.html?entity=Vendors"><span>Vendor Master</span><strong>Vendors, materials, orders</strong></a>
       </section>
       <section class="grid">
         <article>

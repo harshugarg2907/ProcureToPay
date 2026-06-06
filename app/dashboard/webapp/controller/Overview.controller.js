@@ -9,11 +9,11 @@ sap.ui.define([
     },
 
     openProcurement: function () {
-      window.location.href = "/procurement-pages/index.html";
+      window.location.href = "/home/index.html";
     },
 
     openVendors: function () {
-      window.location.href = "/vendors-master/index.html";
+      window.location.href = "/p2p-list-object/index.html?entity=Vendors";
     }
   });
 });

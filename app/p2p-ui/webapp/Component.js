@@ -17,24 +17,12 @@ sap.ui.define([
       }
 
       UIComponent.prototype.init.apply(this, arguments);
-      this._applyStoredAuth();
       this.setModel(models.createDeviceModel(), "device");
       this.setModel(new JSONModel(models.createSession()), "session");
 
       var router = this.getRouter();
       router.attachBeforeRouteMatched(this._guardRoute, this);
       router.initialize();
-    },
-
-    _applyStoredAuth: function () {
-      var auth = JSON.parse(sessionStorage.getItem("p2p.auth") || "{}");
-      var model = this.getModel();
-
-      if (auth.authorization && model && typeof model.changeHttpHeaders === "function") {
-        model.changeHttpHeaders({
-          Authorization: auth.authorization
-        });
-      }
     },
 
     _guardRoute: function (event) {

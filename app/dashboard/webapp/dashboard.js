@@ -1,25 +1,20 @@
 (function () {
   "use strict";
 
-  var auth = JSON.parse(sessionStorage.getItem("p2p.auth") || "{}");
   var message = document.getElementById("message");
 
-  if (!auth.authorization) {
-    window.location.href = "/login-page/index.html";
+  if (!window.P2PAuth.requireAuth("/dashboard/index.html")) {
     return;
   }
 
-  document.getElementById("logoutButton").addEventListener("click", function () {
-    sessionStorage.removeItem("p2p.auth");
-    window.location.href = "/login-page/index.html";
-  });
+  window.P2PAuth.renderHeader("P2P Dashboard");
 
   function amount(value) {
     return Number(value || 0).toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
   }
 
   async function read(path) {
-    var response = await fetch("/odata/v4/p2p/" + path, { headers: { Authorization: auth.authorization } });
+    var response = await fetch("/odata/v4/p2p/" + path);
     if (!response.ok) throw new Error("Unable to load dashboard data.");
     return response.json();
   }

@@ -1,74 +1,58 @@
 <mvc:View
   controllerName="sap.cap.p2p.objectpages.controller.Main"
   xmlns:mvc="sap.ui.core.mvc"
-  xmlns="sap.m"
-  xmlns:f="sap.f">
+  xmlns="sap.m">
   <App>
     <pages>
-      <Page title="Object Pages" enableScrolling="false">
+      <Page id="objectPage" title="{detail>/pageTitle}" enableScrolling="true">
         <content>
-          <f:FlexibleColumnLayout id="layout" layout="TwoColumnsMidExpanded">
-            <f:beginColumnPages>
-              <Page title="Master Data">
-                <content>
-                  <IconTabBar expandable="false">
-                    <items>
-                      <IconTabFilter key="vendors" text="Vendors" icon="sap-icon://supplier">
-                        <List mode="SingleSelectMaster" growing="true" selectionChange=".onVendorSelected" items="{/Vendors}">
-                          <items>
-                            <ObjectListItem title="{name}" number="{vendorNo}" intro="{city}" type="Navigation">
-                              <attributes>
-                                <ObjectAttribute title="Payment Terms" text="{paymentTerms}" />
-                                <ObjectAttribute title="Currency" text="{currency}" />
-                              </attributes>
-                              <firstStatus>
-                                <ObjectStatus text="{status}" />
-                              </firstStatus>
-                            </ObjectListItem>
-                          </items>
-                        </List>
-                      </IconTabFilter>
-                      <IconTabFilter key="materials" text="Materials" icon="sap-icon://product">
-                        <List mode="SingleSelectMaster" growing="true" selectionChange=".onMaterialSelected" items="{/Materials}">
-                          <items>
-                            <ObjectListItem title="{materialNo}" intro="{description}" number="{movingAvgPrice}" numberUnit="INR" type="Navigation">
-                              <attributes>
-                                <ObjectAttribute title="Group" text="{materialGroup}" />
-                                <ObjectAttribute title="Plant" text="{plant}" />
-                              </attributes>
-                              <firstStatus>
-                                <ObjectStatus text="{status}" />
-                              </firstStatus>
-                            </ObjectListItem>
-                          </items>
-                        </List>
-                      </IconTabFilter>
-                    </items>
-                  </IconTabBar>
-                </content>
-              </Page>
-            </f:beginColumnPages>
-            <f:midColumnPages>
-              <Page id="objectPage" title="Object Page">
-                <content>
-                  <ObjectHeader
-                    title="{detail>/title}"
-                    intro="{detail>/intro}"
-                    number="{detail>/number}"
-                    numberUnit="{detail>/numberUnit}">
-                    <attributes>
-                      <ObjectAttribute title="Status" text="{detail>/status}" />
-                      <ObjectAttribute title="Email" text="{detail>/email}" />
-                      <ObjectAttribute title="Payment Terms" text="{detail>/paymentTerms}" />
-                      <ObjectAttribute title="Material Group" text="{detail>/materialGroup}" />
-                      <ObjectAttribute title="Plant" text="{detail>/plant}" />
-                      <ObjectAttribute title="Base UoM" text="{detail>/baseUom}" />
-                    </attributes>
-                  </ObjectHeader>
-                </content>
-              </Page>
-            </f:midColumnPages>
-          </f:FlexibleColumnLayout>
+          <VBox class="sapUiResponsiveContentPadding" renderType="Bare">
+            <Panel class="p2pCard">
+              <headerToolbar>
+                <OverflowToolbar>
+                  <Button icon="sap-icon://nav-back" text="Back" type="Transparent" press=".onBack" />
+                  <ToolbarSpacer />
+                  <Button text="Edit" icon="sap-icon://edit" visible="{detail>/canEdit}" press=".onEdit" />
+                  <Button text="Delete" icon="sap-icon://delete" visible="{detail>/canDelete}" press=".onDelete" />
+                  <Button text="Submit PR" visible="{detail>/actions/submitPR}" press=".onSubmitPR" />
+                  <Button text="Approve PR" visible="{detail>/actions/approvePR}" press=".onApprovePR" />
+                  <Button text="Reject" visible="{detail>/actions/reject}" press=".onReject" />
+                  <Button text="Issue RFQ" visible="{detail>/actions/issueRFQ}" press=".onIssueRFQ" />
+                  <Button text="Create PO" visible="{detail>/actions/createPO}" press=".onCreatePO" />
+                  <Button text="Approve PO" visible="{detail>/actions/approvePO}" press=".onApprovePO" />
+                  <Button text="Post Usage Decision" visible="{detail>/actions/postUsageDecision}" press=".onPostUsageDecision" />
+                  <Button text="Post Goods Receipt" visible="{detail>/actions/postGoodsReceipt}" press=".onPostGoodsReceipt" />
+                  <Button text="Run Match" visible="{detail>/actions/runThreeWayMatch}" press=".onRunThreeWayMatch" />
+                  <Button text="Payment Advice" visible="{detail>/actions/createPaymentAdvice}" press=".onCreatePaymentAdvice" />
+                  <Button text="Execute Payment" visible="{detail>/actions/executePaymentRun}" press=".onExecutePaymentRun" />
+                </OverflowToolbar>
+              </headerToolbar>
+              <content>
+                <ObjectHeader
+                  title="{detail>/title}"
+                  intro="{detail>/subtitle}">
+                </ObjectHeader>
+              </content>
+            </Panel>
+            <Panel class="p2pCard sapUiMediumMarginTop" headerText="Details">
+              <content>
+                <Table items="{detail>/fields}" growing="true">
+                  <columns>
+                    <Column><Text text="Field" /></Column>
+                    <Column><Text text="Value" /></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem>
+                      <cells>
+                        <Text text="{detail>label}" />
+                        <Text text="{detail>value}" />
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </content>
+            </Panel>
+          </VBox>
         </content>
       </Page>
     </pages>

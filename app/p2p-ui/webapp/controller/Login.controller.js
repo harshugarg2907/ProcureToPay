@@ -10,16 +10,12 @@ sap.ui.define([
       const oComponent = this.getOwnerComponent();
       const oSession = oComponent.getModel("session");
       const sUserId = oSession.getProperty("/login/userId") || "viewer";
-      const sPassword = oSession.getProperty("/login/password") || "";
 
       try {
-        const sAuth = "Basic " + window.btoa(`${sUserId}:${sPassword}`);
-        const oUserData = await this._loadCurrentUser(sUserId, sAuth);
+        const oUserData = await this._loadCurrentUser(sUserId);
         sessionStorage.setItem("p2p.auth", JSON.stringify({
-          userId: sUserId,
-          authorization: sAuth
+          userId: sUserId
         }));
-        this._applyAuthHeader(oComponent.getModel(), sAuth);
         oSession.setProperty("/currentUser", oUserData);
         this.getOwnerComponent().getRouter().navTo("launchpad", {}, true);
       } catch (error) {
@@ -28,11 +24,10 @@ sap.ui.define([
       }
     },
 
-    _loadCurrentUser: async function (sUserId, sAuth) {
+    _loadCurrentUser: async function (sUserId) {
       const oResponse = await fetch("/odata/v4/p2p/getCurrentUser", {
         method: "POST",
         headers: {
-          Authorization: sAuth,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -59,14 +54,6 @@ sap.ui.define([
         status: oUser.status,
         roles: aRoles
       };
-    },
-
-    _applyAuthHeader: function (oODataModel, sAuth) {
-      if (oODataModel && typeof oODataModel.changeHttpHeaders === "function") {
-        oODataModel.changeHttpHeaders({
-          Authorization: sAuth
-        });
-      }
     }
   });
 });

@@ -4,17 +4,17 @@
   xmlns="sap.m">
   <App>
     <pages>
-      <Page title="Transactional Page">
+      <Page id="mainPage" title="{page>/pageTitle}">
         <content>
-          <IconTabBar expandable="false" class="sapUiResponsiveContentPadding">
+          <IconTabBar expandable="false" selectedKey="{page>/selectedKey}" class="sapUiResponsiveContentPadding p2pCard">
             <items>
-              <IconTabFilter key="qc" text="Quality" icon="sap-icon://inspection">
-                <Table id="inspectionTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectInspectionLot" items="{/InspectionLots}">
+              <IconTabFilter key="qc" text="Inspection Lots" icon="sap-icon://inspection" visible="{page>/showInspectionLots}">
+                <Table id="inspectionTable" class="p2pResponsiveTable" growing="true" mode="SingleSelectMaster" selectionChange=".onSelectInspectionLot" items="{/InspectionLots}">
                   <headerToolbar>
                     <OverflowToolbar>
                       <Title text="Inspection Lots" />
                       <ToolbarSpacer />
-                      <Button text="Post Usage Decision" icon="sap-icon://accept" type="Emphasized" press=".onPostUsageDecision" />
+                      <Button text="Post Usage Decision" icon="sap-icon://accept" type="Emphasized" visible="{actions>/postUsageDecision}" press=".onPostUsageDecision" />
                     </OverflowToolbar>
                   </headerToolbar>
                   <columns>
@@ -23,7 +23,7 @@
                     <Column><Text text="Status" /></Column>
                   </columns>
                   <items>
-                    <ColumnListItem>
+                    <ColumnListItem type="Navigation">
                       <cells>
                         <ObjectIdentifier title="{inspectionLotNo}" />
                         <Text text="{material/materialNo}" />
@@ -33,15 +33,15 @@
                   </items>
                 </Table>
               </IconTabFilter>
-              <IconTabFilter key="gr" text="Goods Receipts" icon="sap-icon://shipping-status">
-                <Table growing="true" items="{/GoodsReceipts}">
+              <IconTabFilter key="gr" text="Goods Receipts" icon="sap-icon://shipping-status" visible="{page>/showGoodsReceipts}">
+                <Table class="p2pResponsiveTable" growing="true" mode="SingleSelectMaster" selectionChange=".onSelectGoodsReceipt" items="{/GoodsReceipts}">
                   <columns>
                     <Column><Text text="GR" /></Column>
                     <Column><Text text="Posting Date" /></Column>
                     <Column><Text text="Status" /></Column>
                   </columns>
                   <items>
-                    <ColumnListItem>
+                    <ColumnListItem type="Navigation">
                       <cells>
                         <ObjectIdentifier title="{grNo}" />
                         <Text text="{postingDate}" />
@@ -51,14 +51,14 @@
                   </items>
                 </Table>
               </IconTabFilter>
-              <IconTabFilter key="invoice" text="Invoices" icon="sap-icon://expense-report">
-                <Table id="invoiceTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectInvoice" items="{/Invoices}">
+              <IconTabFilter key="invoice" text="Invoices" icon="sap-icon://expense-report" visible="{page>/showInvoices}">
+                <Table id="invoiceTable" class="p2pResponsiveTable" growing="true" mode="SingleSelectMaster" selectionChange=".onSelectInvoice" items="{/Invoices}">
                   <headerToolbar>
                     <OverflowToolbar>
                       <Title text="Invoices" />
                       <ToolbarSpacer />
-                      <Button text="Three-Way Match" icon="sap-icon://compare" press=".onRunThreeWayMatch" />
-                      <Button text="Payment Advice" icon="sap-icon://payment-approval" type="Emphasized" press=".onCreatePaymentAdvice" />
+                      <Button text="Three-Way Match" icon="sap-icon://compare" visible="{actions>/runThreeWayMatch}" press=".onRunThreeWayMatch" />
+                      <Button text="Payment Advice" icon="sap-icon://payment-approval" type="Emphasized" visible="{actions>/createPaymentAdvice}" press=".onCreatePaymentAdvice" />
                     </OverflowToolbar>
                   </headerToolbar>
                   <columns>
@@ -68,7 +68,7 @@
                     <Column><Text text="Status" /></Column>
                   </columns>
                   <items>
-                    <ColumnListItem>
+                    <ColumnListItem type="Navigation">
                       <cells>
                         <ObjectIdentifier title="{invoiceNo}" />
                         <Text text="{vendor/name}" />
@@ -79,13 +79,13 @@
                   </items>
                 </Table>
               </IconTabFilter>
-              <IconTabFilter key="payment" text="Payment Runs" icon="sap-icon://payment-approval">
-                <Table id="paymentTable" growing="true" mode="SingleSelectLeft" selectionChange=".onSelectPaymentRun" items="{/PaymentRuns}">
+              <IconTabFilter key="payment" text="Payment Runs" icon="sap-icon://payment-approval" visible="{page>/showPaymentRuns}">
+                <Table id="paymentTable" class="p2pResponsiveTable" growing="true" mode="SingleSelectMaster" selectionChange=".onSelectPaymentRun" items="{/PaymentRuns}">
                   <headerToolbar>
                     <OverflowToolbar>
                       <Title text="Payment Runs" />
                       <ToolbarSpacer />
-                      <Button text="Execute Payment Run" icon="sap-icon://process" type="Emphasized" press=".onExecutePaymentRun" />
+                      <Button text="Execute Payment Run" icon="sap-icon://process" type="Emphasized" visible="{actions>/executePaymentRun}" press=".onExecutePaymentRun" />
                     </OverflowToolbar>
                   </headerToolbar>
                   <columns>
@@ -95,7 +95,7 @@
                     <Column><Text text="Status" /></Column>
                   </columns>
                   <items>
-                    <ColumnListItem>
+                    <ColumnListItem type="Navigation">
                       <cells>
                         <ObjectIdentifier title="{paymentRunId}" />
                         <Text text="{runDate}" />
