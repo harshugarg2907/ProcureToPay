@@ -17,9 +17,19 @@ sap.ui.define([], function () {
       "/procurement-pages/index.html": ["Admin", "ProcurementOfficer"],
       "/p2p-object-pages/index.html": ALL_ROLES,
       "/p2p-transactional/index.html": ["Admin", "FinanceOfficer", "QCInspector", "GoodsReceiptOfficer", "Viewer"],
-      "/p2p-analytical/index.html": ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"]
+      "/p2p-analytical/index.html": ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
+      "/user-management/index.html": ["Admin"],
+      "/user-management/webapp/index.html": ["Admin"]
     },
     ENTITIES: {
+      Users: {
+        READ: ["Admin"],
+        WRITE: ["Admin"]
+      },
+      UserRoles: {
+        READ: ["Admin"],
+        WRITE: ["Admin"]
+      },
       Vendors: {
         READ: ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
         WRITE: ["Admin"]
@@ -87,7 +97,8 @@ sap.ui.define([], function () {
     { title: "Invoices", description: "Supplier invoice processing", icon: "sap-icon://receipt", entity: "Invoices", path: "/p2p-list-object/index.html?entity=Invoices" },
     { title: "Payment Runs", description: "Payment execution", icon: "sap-icon://payment-approval", entity: "PaymentRuns", path: "/p2p-list-object/index.html?entity=PaymentRuns" },
     { title: "Total Spend Analytics", description: "Vendor Spend, PO Spend & Procurement Insights", icon: "sap-icon://money-bills", entity: "Analytics", path: "/p2p-analytical/index.html" },
-    { title: "Vendor Spend Analytics", description: "Spend grouped by vendor", icon: "sap-icon://bar-chart", entity: "Analytics", path: "/p2p-analytical/index.html" }
+    { title: "Vendor Spend Analytics", description: "Spend grouped by vendor", icon: "sap-icon://bar-chart", entity: "Analytics", path: "/p2p-analytical/index.html" },
+    { title: "User Management", description: "Users, roles and access control", icon: "sap-icon://group", entity: "Users", path: "/user-management/index.html" }
   ];
 
   function includes(roles, role) {

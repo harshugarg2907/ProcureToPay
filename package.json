@@ -4,16 +4,20 @@
   "description": "SAP CAP full stack Procure-to-Pay application",
   "private": true,
   "scripts": {
-    "start": "cds serve",
+    "start": "cds-serve",
     "watch": "cds watch",
     "deploy": "cds deploy --to sqlite",
+    "build:router-resources": "node scripts/copy-router-resources.js",
+    "build:mta": "mbt build",
+    "deploy:cf": "cf deploy mta_archives/sap-cap-p2p_1.0.0.mtar",
     "lint:ui5": "cd app/p2p-ui && ui5lint && cd ../login-page && ui5lint && cd ../dashboard && ui5lint && cd ../procurement-pages && ui5lint && cd ../p2p-list-object && ui5lint && cd ../p2p-analytical && ui5lint && cd ../p2p-transactional && ui5lint && cd ../p2p-object-pages && ui5lint",
     "test": "npm run deploy"
   },
   "dependencies": {
+    "@cap-js/hana": "^2",
     "@cap-js/sqlite": "^2.4.0",
     "@sap/cds": "^9.9.1",
-    "@sap/xssec": "^4.2.8",
+    "@sap/xssec": "^4",
     "express": "^4.21.2"
   },
   "devDependencies": {
@@ -25,9 +29,14 @@
   "cds": {
     "requires": {
       "db": {
-        "kind": "sqlite",
-        "credentials": {
-          "url": "db.sqlite"
+        "[development]": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": "db.sqlite"
+          }
+        },
+        "[production]": {
+          "kind": "hana"
         }
       },
       "auth": {
@@ -36,29 +45,55 @@
           "users": {
             "admin": {
               "password": "admin",
-              "roles": ["Admin", "authenticated-user"]
+              "roles": [
+                "Admin",
+                "authenticated-user"
+              ]
             },
             "jsmith": {
               "password": "jsmith",
-              "roles": ["ProcurementOfficer", "authenticated-user"]
+              "roles": [
+                "ProcurementOfficer",
+                "authenticated-user"
+              ]
             },
             "qinspector": {
               "password": "qinspector",
-              "roles": ["QCInspector", "authenticated-user"]
+              "roles": [
+                "QCInspector",
+                "authenticated-user"
+              ]
             },
             "grofficer": {
               "password": "grofficer",
-              "roles": ["GoodsReceiptOfficer", "authenticated-user"]
+              "roles": [
+                "GoodsReceiptOfficer",
+                "authenticated-user"
+              ]
             },
             "finance": {
               "password": "finance",
-              "roles": ["FinanceOfficer", "authenticated-user"]
+              "roles": [
+                "FinanceOfficer",
+                "authenticated-user"
+              ]
             },
             "viewer": {
               "password": "viewer",
-              "roles": ["Viewer", "authenticated-user"]
+              "roles": [
+                "Viewer",
+                "authenticated-user"
+              ]
             }
           }
+        },
+        "[production]": {
+          "kind": "xsuaa"
+        }
+      },
+      "[production]": {
+        "auth": {
+          "kind": "xsuaa"
         }
       }
     },

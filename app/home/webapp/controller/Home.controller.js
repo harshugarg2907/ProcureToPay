@@ -61,6 +61,10 @@ sap.ui.define([
         return this._readAnalyticsSpend();
       }
 
+      if (entity === "Users") {
+        return this._readUserCount();
+      }
+
       try {
         var countResponse = await fetch("/odata/v4/p2p/" + encodeURIComponent(entity) + "/$count");
 
@@ -75,6 +79,20 @@ sap.ui.define([
         }
 
         return { value: String(((await listResponse.json()).value || []).length), scale: "" };
+      } catch (error) {
+        return { value: "0", scale: "" };
+      }
+    },
+
+    _readUserCount: async function () {
+      try {
+        var response = await fetch("/odata/v4/p2p/Users?$select=ID&$top=5000");
+
+        if (!response.ok) {
+          return { value: "0", scale: "" };
+        }
+
+        return { value: String(((await response.json()).value || []).length), scale: "" };
       } catch (error) {
         return { value: "0", scale: "" };
       }

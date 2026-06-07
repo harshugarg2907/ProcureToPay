@@ -6,7 +6,9 @@
   var STORAGE_KEYS = ["loggedInUser", "userRole", "userFullName", "userEmail", "companyCode", "costCenter"];
   var ROUTE_PERMISSIONS = {
     "/dashboard/index.html": ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
-    "/procurement-pages/index.html": ["Admin", "ProcurementOfficer"]
+    "/procurement-pages/index.html": ["Admin", "ProcurementOfficer"],
+    "/user-management/index.html": ["Admin"],
+    "/user-management/webapp/index.html": ["Admin"]
   };
 
   function session() {
