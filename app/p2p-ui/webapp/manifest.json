@@ -45,7 +45,7 @@
     "models": {
       "": {
         "dataSource": "mainService",
-        "preload": true,
+        "preload": false,
         "settings": {
           "operationMode": "Server",
           "autoExpandSelect": true

@@ -6,24 +6,28 @@ const nextId = (prefix) => `${prefix}-${Date.now().toString().slice(-8)}`;
 module.exports = cds.service.impl(async function () {
   const {
     CurrentUser,
-    Users,
-    UserRoles,
+    Users: ServiceUsers,
+    UserRoles: ServiceUserRoles,
     Vendors,
     Materials,
     PurchaseRequisitions,
-    PurchaseRequisitionItems,
     RFQs,
-    RFQVendors,
-    RFQItems,
     PurchaseOrders,
-    PurchaseOrderItems,
     InspectionLots,
     GoodsReceipts,
-    GoodsReceiptItems,
     Invoices,
-    PaymentRuns,
-    PaymentRunItems
+    PaymentRuns
   } = this.entities;
+  const {
+    Users,
+    UserRoles,
+    PurchaseRequisitionItems,
+    RFQVendors,
+    RFQItems,
+    PurchaseOrderItems,
+    GoodsReceiptItems,
+    PaymentRunItems
+  } = cds.entities('sap.cap.p2p');
 
   const getUserWithRoles = async (userId) => {
     let user = await SELECT.one.from(Users).where({ userId });
@@ -37,6 +41,26 @@ module.exports = cds.service.impl(async function () {
     };
   };
 
+  const getRequestedId = (req) => {
+    const key = req.params && req.params[0];
+    return req.data.ID || (key && (key.ID || key));
+  };
+
+  const isAdminUser = (user) => {
+    return String((user && user.userId) || "").toLowerCase() === "admin";
+  };
+
+  const isCountQuery = (req) => {
+    const columns = req.query && req.query.SELECT && req.query.SELECT.columns || [];
+    return columns.some((column) => column.func === 'count');
+  };
+
+  const getRoleUser = async (roleId, fallbackUserId) => {
+    const role = roleId ? await SELECT.one.from(ServiceUserRoles).where({ ID: roleId }) : null;
+    const userId = fallbackUserId || (role && role.user_ID);
+    return userId ? SELECT.one.from(ServiceUsers).where({ ID: userId }) : null;
+  };
+
   this.on('READ', CurrentUser, async (req) => {
     const userId = req.user.id === 'anonymous' ? 'viewer' : req.user.id;
     const user = await getUserWithRoles(userId);
@@ -48,23 +72,79 @@ module.exports = cds.service.impl(async function () {
     return result;
   });
 
-  this.before(['CREATE', 'UPDATE'], PurchaseRequisitionItems, (req) => {
-    const { quantity, deliveryDate, material_ID, plant } = req.data;
-    if (quantity !== undefined && Number(quantity) <= 0) req.error(400, 'Quantity must be greater than zero.');
-    if (deliveryDate && deliveryDate < today()) req.error(400, 'Delivery date cannot be in the past.');
-    if (!material_ID && req.event === 'CREATE') req.error(400, 'Material is mandatory.');
-    if (!plant && req.event === 'CREATE') req.error(400, 'Plant is mandatory.');
+  this.on('READ', ServiceUsers, async (req) => {
+    const id = getRequestedId(req);
+
+    if (id) {
+      const user = await SELECT.one.from(Users).where({ ID: id });
+      return user || req.error(404, 'User not found.');
+    }
+
+    const rows = await SELECT.from(Users).orderBy('userId');
+    if (isCountQuery(req)) {
+      return [{ $count: rows.length }];
+    }
+
+    rows.$count = rows.length;
+    return rows;
   });
 
-  this.before(['CREATE', 'UPDATE'], [PurchaseOrderItems, GoodsReceiptItems], (req) => {
-    if (req.data.quantity !== undefined && Number(req.data.quantity) <= 0) {
-      req.error(400, 'Quantity must be positive.');
+  this.on('READ', ServiceUserRoles, async (req) => {
+    const id = getRequestedId(req);
+    const rows = id
+      ? await SELECT.from(UserRoles).where({ ID: id })
+      : await SELECT.from(UserRoles).orderBy('roleName');
+    const userIds = [...new Set(rows.map((role) => role.user_ID).filter(Boolean))];
+    const usersById = {};
+
+    if (userIds.length) {
+      const roleUsers = await SELECT.from(Users).where({ ID: { in: userIds } });
+      for (const user of roleUsers) {
+        usersById[user.ID] = user;
+      }
     }
+
+    const result = rows.map((role) => ({
+      ...role,
+      user: usersById[role.user_ID] || null
+    }));
+
+    if (id) return result[0] || req.error(404, 'User role not found.');
+    if (isCountQuery(req)) {
+      return [{ $count: result.length }];
+    }
+
+    result.$count = result.length;
+    return result;
   });
 
   this.before(['CREATE', 'UPDATE'], [PurchaseOrders, GoodsReceipts, Invoices, PaymentRuns], (req) => {
     for (const field of ['totalNetValue', 'totalGRValue', 'netAmount', 'taxAmount', 'totalPayable', 'totalPaymentAmount']) {
       if (req.data[field] !== undefined && Number(req.data[field]) < 0) req.error(400, 'Amounts must be positive.');
+    }
+  });
+
+  this.before('CREATE', ServiceUsers, async (req) => {
+    if (isAdminUser(req.data)) {
+      return req.error(403, 'The protected admin user already exists and cannot be recreated.');
+    }
+  });
+
+  this.before(['UPDATE', 'DELETE'], ServiceUsers, async (req) => {
+    const id = getRequestedId(req);
+    const user = id ? await SELECT.one.from(ServiceUsers).where({ ID: id }) : null;
+
+    if (isAdminUser(user)) {
+      return req.error(403, 'The admin user cannot be changed or deleted.');
+    }
+  });
+
+  this.before(['CREATE', 'UPDATE', 'DELETE'], ServiceUserRoles, async (req) => {
+    const id = getRequestedId(req);
+    const user = await getRoleUser(id, req.data.user_ID);
+
+    if (isAdminUser(user)) {
+      return req.error(403, 'Admin roles are protected and cannot be changed or deleted.');
     }
   });
 

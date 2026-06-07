@@ -1,0 +1,71 @@
+<mvc:View
+  controllerName="sap.cap.p2p.dashboard.controller.Overview"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f">
+  <Page title="P2P Dashboard">
+    <headerContent>
+      <Button icon="sap-icon://log" tooltip="Login" press=".openLogin" />
+    </headerContent>
+    <content>
+      <VBox class="sapUiResponsiveContentPadding" renderType="Bare">
+        <f:GridContainer>
+          <GenericTile header="Procurement" subheader="PR, RFQ, PO lists" frameType="TwoByOne" press=".openProcurement">
+            <TileContent>
+              <ImageContent src="sap-icon://cart-3" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Vendor Master" subheader="Vendors and materials" frameType="TwoByOne" press=".openVendors">
+            <TileContent>
+              <ImageContent src="sap-icon://supplier" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Analytics" subheader="PO status and spend" frameType="TwoByOne">
+            <TileContent>
+              <ImageContent src="sap-icon://business-objects-experience" />
+            </TileContent>
+          </GenericTile>
+        </f:GridContainer>
+        <Title text="Analytical Overview" level="H2" class="sapUiMediumMarginTop" />
+        <Table growing="true" items="{/POStatusAnalytics}">
+          <headerToolbar>
+            <OverflowToolbar>
+              <Title text="Purchase Orders by Status" />
+            </OverflowToolbar>
+          </headerToolbar>
+          <columns>
+            <Column><Text text="Status" /></Column>
+            <Column hAlign="End"><Text text="Total" /></Column>
+          </columns>
+          <items>
+            <ColumnListItem>
+              <cells>
+                <ObjectStatus text="{status}" />
+                <ObjectNumber number="{total}" />
+              </cells>
+            </ColumnListItem>
+          </items>
+        </Table>
+        <Table growing="true" items="{/VendorSpendAnalytics}" class="sapUiMediumMarginTop">
+          <headerToolbar>
+            <OverflowToolbar>
+              <Title text="Vendor Spend" />
+            </OverflowToolbar>
+          </headerToolbar>
+          <columns>
+            <Column><Text text="Vendor" /></Column>
+            <Column hAlign="End"><Text text="Spend" /></Column>
+          </columns>
+          <items>
+            <ColumnListItem>
+              <cells>
+                <Text text="{vendorName}" />
+                <ObjectNumber number="{totalSpend}" unit="INR" />
+              </cells>
+            </ColumnListItem>
+          </items>
+        </Table>
+      </VBox>
+    </content>
+  </Page>
+</mvc:View>

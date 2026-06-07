@@ -66,6 +66,30 @@ annotate service.PurchaseRequisitions with @(
   ]
 );
 
+annotate service.RFQs with @(
+  UI.HeaderInfo: {
+    TypeName: 'RFQ',
+    TypeNamePlural: 'RFQs',
+    Title: { Value: rfqNo },
+    Description: { Value: status }
+  },
+  UI.SelectionFields: [rfqNo, status, purchasingOrg, submissionDeadline],
+  UI.LineItem: [
+    { Value: rfqNo, Label: 'RFQ Number' },
+    { Value: sourcePR.prNo, Label: 'Source PR' },
+    { Value: purchasingOrg, Label: 'Purchasing Org' },
+    { Value: submissionDeadline, Label: 'Submission Deadline' },
+    { Value: selectedVendor.name, Label: 'Selected Vendor' },
+    { Value: status, Label: 'Status' }
+  ],
+  UI.Identification: [
+    { Value: rfqNo, Label: 'RFQ Number' },
+    { Value: purchasingOrg, Label: 'Purchasing Organization' },
+    { Value: purchasingGroup, Label: 'Purchasing Group' },
+    { Value: status, Label: 'Status' }
+  ]
+);
+
 annotate service.Vendors with @(
   UI.HeaderInfo: {
     TypeName: 'Vendor',
@@ -96,6 +120,111 @@ annotate service.Materials with @(
     { Value: description, Label: 'Description' },
     { Value: baseUom, Label: 'UoM' },
     { Value: movingAvgPrice, Label: 'Price' },
+    { Value: status, Label: 'Status' }
+  ]
+);
+
+annotate service.InspectionLots with @(
+  UI.HeaderInfo: {
+    TypeName: 'Inspection Lot',
+    TypeNamePlural: 'Inspection Lots',
+    Title: { Value: inspectionLotNo },
+    Description: { Value: status }
+  },
+  UI.SelectionFields: [inspectionLotNo, status, inspectionType, vendor_ID],
+  UI.LineItem: [
+    { Value: inspectionLotNo, Label: 'Inspection Lot' },
+    { Value: material.materialNo, Label: 'Material' },
+    { Value: vendor.name, Label: 'Vendor' },
+    { Value: lotQuantity, Label: 'Lot Quantity' },
+    { Value: acceptedQuantity, Label: 'Accepted' },
+    { Value: rejectedQuantity, Label: 'Rejected' },
+    { Value: status, Label: 'Status' }
+  ],
+  UI.Identification: [
+    { Value: inspectionLotNo, Label: 'Inspection Lot' },
+    { Value: inspectionType, Label: 'Inspection Type' },
+    { Value: usageDecisionCode, Label: 'Usage Decision' },
+    { Value: rejectionReason, Label: 'Rejection Reason' },
+    { Value: status, Label: 'Status' }
+  ]
+);
+
+annotate service.GoodsReceipts with @(
+  UI.HeaderInfo: {
+    TypeName: 'Goods Receipt',
+    TypeNamePlural: 'Goods Receipts',
+    Title: { Value: grNo },
+    Description: { Value: status }
+  },
+  UI.SelectionFields: [grNo, status, postingDate, plant],
+  UI.LineItem: [
+    { Value: grNo, Label: 'GR Number' },
+    { Value: purchaseOrder.poNo, Label: 'Purchase Order' },
+    { Value: inspectionLot.inspectionLotNo, Label: 'Inspection Lot' },
+    { Value: postingDate, Label: 'Posting Date' },
+    { Value: plant, Label: 'Plant' },
+    { Value: totalGRValue, Label: 'GR Value' },
+    { Value: status, Label: 'Status' }
+  ],
+  UI.Identification: [
+    { Value: grNo, Label: 'GR Number' },
+    { Value: documentDate, Label: 'Document Date' },
+    { Value: storageLocation, Label: 'Storage Location' },
+    { Value: batch, Label: 'Batch' },
+    { Value: status, Label: 'Status' }
+  ]
+);
+
+annotate service.Invoices with @(
+  UI.HeaderInfo: {
+    TypeName: 'Invoice',
+    TypeNamePlural: 'Invoices',
+    Title: { Value: invoiceNo },
+    Description: { Value: status }
+  },
+  UI.SelectionFields: [invoiceNo, status, matchStatus, dueDate],
+  UI.LineItem: [
+    { Value: invoiceNo, Label: 'Invoice Number' },
+    { Value: vendor.name, Label: 'Vendor' },
+    { Value: purchaseOrder.poNo, Label: 'Purchase Order' },
+    { Value: invoiceDate, Label: 'Invoice Date' },
+    { Value: totalPayable, Label: 'Total Payable' },
+    { Value: matchStatus, Label: 'Match Status' },
+    { Value: status, Label: 'Status' }
+  ],
+  UI.Identification: [
+    { Value: invoiceNo, Label: 'Invoice Number' },
+    { Value: invoiceReference, Label: 'Reference' },
+    { Value: postingDate, Label: 'Posting Date' },
+    { Value: dueDate, Label: 'Due Date' },
+    { Value: paymentTerms, Label: 'Payment Terms' },
+    { Value: status, Label: 'Status' }
+  ]
+);
+
+annotate service.PaymentRuns with @(
+  UI.HeaderInfo: {
+    TypeName: 'Payment Run',
+    TypeNamePlural: 'Payment Runs',
+    Title: { Value: paymentRunId },
+    Description: { Value: status }
+  },
+  UI.SelectionFields: [paymentRunId, status, runDate, companyCode],
+  UI.LineItem: [
+    { Value: paymentRunId, Label: 'Payment Run' },
+    { Value: runDate, Label: 'Run Date' },
+    { Value: companyCode, Label: 'Company Code' },
+    { Value: paymentMethod, Label: 'Payment Method' },
+    { Value: nextPaymentDate, Label: 'Next Payment Date' },
+    { Value: totalPaymentAmount, Label: 'Total Amount' },
+    { Value: status, Label: 'Status' }
+  ],
+  UI.Identification: [
+    { Value: paymentRunId, Label: 'Payment Run' },
+    { Value: runDate, Label: 'Run Date' },
+    { Value: companyCode, Label: 'Company Code' },
+    { Value: paymentMethod, Label: 'Payment Method' },
     { Value: status, Label: 'Status' }
   ]
 );

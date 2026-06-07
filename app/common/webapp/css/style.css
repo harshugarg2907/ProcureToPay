@@ -1,0 +1,355 @@
+html,
+body,
+.sapUiBody {
+  --p2p-page-x-padding: 1.5rem;
+  --p2p-page-top-gap: calc(1.5rem + 25px);
+  --p2p-page-bottom-gap: 4.5rem;
+  min-height: 100%;
+  background: linear-gradient(135deg, #f7fbff 0%, #eef6f5 48%, #f8f5ff 100%);
+}
+
+.p2pShellPage {
+  background: transparent;
+}
+
+.p2pShellPage .sapMPageScroll {
+  min-height: calc(100vh - 6.75rem);
+  padding: var(--p2p-page-top-gap) var(--p2p-page-x-padding) var(--p2p-page-bottom-gap);
+}
+
+.p2pShellPage.sapMPageWithHeader .sapMPageScroll {
+  padding-top: var(--p2p-page-top-gap);
+}
+
+.p2pShellPage.sapMPageWithFooter .sapMPageScroll {
+  padding-bottom: var(--p2p-page-bottom-gap);
+}
+
+.p2pAppShell {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f7fbff 0%, #eef6f5 48%, #f8f5ff 100%);
+}
+
+.p2pPage {
+  min-height: 100vh;
+  padding: var(--p2p-page-top-gap) var(--p2p-page-x-padding) var(--p2p-page-bottom-gap);
+}
+
+.p2pContent {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: var(--p2p-page-top-gap) 0 var(--p2p-page-bottom-gap);
+}
+
+.p2pShellPage .sapMPageEnableScrolling {
+  padding: var(--p2p-page-top-gap) var(--p2p-page-x-padding) var(--p2p-page-bottom-gap);
+}
+
+.p2pFixedHeader.sapMBar {
+  position: relative;
+  z-index: 2;
+  min-height: 4rem;
+  border-bottom: 1px solid rgba(137, 158, 170, .28);
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 .25rem 1rem rgba(34, 53, 72, .12);
+}
+
+.p2pFixedFooter.sapMBar {
+  position: relative;
+  z-index: 1;
+  min-height: 2.75rem;
+  border-top: 1px solid rgba(137, 158, 170, .25);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 -.125rem .75rem rgba(34, 53, 72, .08);
+}
+
+.p2pHeader {
+  min-height: 4rem;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 .25rem 1rem rgba(34, 53, 72, .12);
+}
+
+.p2pFooter {
+  min-height: 2.75rem;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 -.125rem .75rem rgba(34, 53, 72, .08);
+}
+
+.p2pHeaderBrand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12314d;
+}
+
+.p2pHeaderPageTitle {
+  margin-left: 1rem;
+  color: #466273;
+  font-weight: 600;
+}
+
+.p2pHeaderMeta {
+  color: #5d7080;
+  font-size: .8125rem;
+}
+
+.p2pCard,
+.sapMPanel.p2pCard,
+.p2pShellPage .sapMPanel {
+  overflow: hidden;
+  border-radius: .875rem;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 .5rem 1.5rem rgba(34, 53, 72, .1);
+}
+
+.p2pTileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.p2pResponsiveTable {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.p2pResponsiveTable table {
+  min-width: 46rem;
+}
+
+.p2pFormSection {
+  display: grid;
+  gap: 1rem;
+  max-width: 44rem;
+}
+
+.p2pDialogForm,
+.p2pFormSection,
+.sapMDialog .sapMDialogScrollCont,
+.sapMDialog .sapMDialogSection {
+  box-sizing: border-box;
+}
+
+.p2pDialogForm {
+  width: min(32rem, calc(100vw - 3rem)) !important;
+  gap: .75rem;
+  padding: .25rem .5rem 1rem;
+}
+
+.p2pDialogForm .sapMLabel,
+.p2pFormSection .sapMLabel,
+.sapMDialog .sapMLabel {
+  display: block;
+  margin-top: .5rem;
+  margin-bottom: .25rem;
+  font-weight: 600;
+}
+
+.p2pDialogForm .sapMInputBase,
+.p2pDialogForm .sapMTextArea,
+.p2pDialogForm .sapMSlt,
+.p2pDialogForm .sapMComboBox,
+.p2pFormSection .sapMInputBase,
+.p2pFormSection .sapMTextArea,
+.p2pFormSection .sapMSlt,
+.p2pFormSection .sapMComboBox,
+.sapMDialog .sapMInputBase,
+.sapMDialog .sapMTextArea,
+.sapMDialog .sapMSlt,
+.sapMDialog .sapMComboBox {
+  width: 100% !important;
+  margin-bottom: .75rem;
+}
+
+.sapMDialog .sapMInputBaseInner,
+.sapMDialog .sapMTextAreaInner,
+.sapMDialog .sapMSlt,
+.sapMDialog .sapMComboBoxBase,
+.p2pFormSection .sapMInputBaseInner,
+.p2pFormSection .sapMTextAreaInner {
+  min-height: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.375rem;
+  padding-left: .75rem;
+  padding-right: .75rem;
+  border-radius: .5rem;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.sapMDialog .sapMInputBaseContentWrapper,
+.p2pFormSection .sapMInputBaseContentWrapper {
+  min-height: 2.5rem;
+  height: 2.5rem;
+  border-radius: .5rem;
+  box-sizing: border-box;
+}
+
+.sapMDialog .sapMInputBase,
+.p2pFormSection .sapMInputBase {
+  height: auto;
+  min-height: 2.75rem;
+  display: block;
+}
+
+.sapMDialog .sapMInputBaseInner::placeholder,
+.p2pFormSection .sapMInputBaseInner::placeholder {
+  color: #6f7f8f;
+}
+
+.sapMDialog .sapMDialogScrollCont {
+  padding: 1.25rem 1.5rem;
+}
+
+.sapMDialog .sapMDialogFooter .sapMBar,
+.sapMDialog .sapMDialogSubHeader .sapMBar {
+  padding-left: .75rem;
+  padding-right: .75rem;
+}
+
+.sapMSearchField,
+.sapMInputBase,
+.sapMSlt,
+.sapMComboBoxBase {
+  max-width: 100%;
+}
+
+.p2pShellPage .sapMGT {
+  border-radius: .875rem;
+  box-shadow: 0 .45rem 1.25rem rgba(34, 53, 72, .12);
+}
+
+.p2pShellPage .sapMGT:hover {
+  box-shadow: 0 .65rem 1.75rem rgba(10, 110, 209, .18);
+}
+
+.p2pShellPage .sapFGridContainer {
+  width: 100%;
+}
+
+.p2pHomeContent {
+  width: 100%;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding-bottom: var(--p2p-page-bottom-gap);
+}
+
+.p2pHomeTileGrid {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+}
+
+.p2pHomeTileGrid .sapMGT {
+  width: 16rem;
+  min-width: 0;
+}
+
+.p2pHomeTile {
+  flex: 0 1 16rem;
+  margin: 0 1rem 1rem 0;
+}
+
+.p2pHomeTileGrid .sapFGridContainerItemWrapper {
+  min-width: 0;
+}
+
+.p2pAnalyticsPage {
+  width: 100%;
+  max-width: 96rem;
+  margin: 0 auto;
+  padding-bottom: var(--p2p-page-bottom-gap);
+}
+
+.p2pAnalyticsHero {
+  gap: .375rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  color: #12314d;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(235, 247, 246, .96));
+  box-shadow: 0 .75rem 2rem rgba(34, 53, 72, .12);
+}
+
+.p2pAnalyticsEyebrow {
+  color: #0a6ed1;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.p2pSectionTitle {
+  margin-top: 1.75rem;
+  margin-bottom: .75rem;
+  color: #12314d;
+}
+
+.p2pAnalyticsKpiGrid,
+.p2pAnalyticsInsightGrid,
+.p2pAnalyticsCardGrid {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.p2pAnalyticsKpiTile,
+.p2pAnalyticsInsightTile {
+  flex: 1 1 17rem;
+  min-width: 15rem;
+  margin: 0 1rem 1rem 0;
+}
+
+.p2pAnalyticsKpiTile.sapMGT,
+.p2pAnalyticsInsightTile.sapMGT {
+  min-height: 9rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 .65rem 1.65rem rgba(34, 53, 72, .12);
+}
+
+.p2pAnalyticsCard.sapFCard {
+  flex: 1 1 29rem;
+  min-width: 22rem;
+  margin: 0 1rem 1rem 0;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 .65rem 1.65rem rgba(34, 53, 72, .12);
+}
+
+.p2pTableCard.sapFCard {
+  flex-basis: 24rem;
+}
+
+.p2pChartCard .sapVizFrame {
+  min-height: 20rem;
+}
+
+@media (max-width: 700px) {
+  .p2pHeaderPageTitle,
+  .p2pHeaderMeta {
+    display: none;
+  }
+
+  .p2pPage,
+  .p2pShellPage .sapMPageEnableScrolling {
+    padding: calc(1rem + 25px) 1rem var(--p2p-page-bottom-gap);
+  }
+
+  .p2pShellPage .sapMPageScroll {
+    padding: calc(1rem + 25px) 1rem var(--p2p-page-bottom-gap);
+  }
+
+  .p2pHomeTile,
+  .p2pHomeTileGrid .sapMGT,
+  .p2pAnalyticsKpiTile,
+  .p2pAnalyticsInsightTile,
+  .p2pAnalyticsCard.sapFCard {
+    width: 100%;
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+
+  .p2pAnalyticsHero {
+    padding: 1rem;
+  }
+}
