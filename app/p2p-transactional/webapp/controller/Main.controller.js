@@ -161,11 +161,7 @@ sap.ui.define([
           }
           MessageBox.success(msg, {
             onClose: function () {
-              if (jsonResponse.nextEntity && jsonResponse.nextId) {
-                Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId));
-              } else {
-                this.getView().getModel().refresh();
-              }
+              this.getView().getModel().refresh();
             }.bind(this)
           });
         } else {

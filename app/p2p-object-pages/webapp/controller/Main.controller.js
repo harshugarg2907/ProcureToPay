@@ -660,12 +660,7 @@ sap.ui.define([
           }
           MessageBox.success(msg, {
             onClose: function () {
-              if (jsonResponse.nextEntity && jsonResponse.nextId) {
-                window.location.hash = "#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId);
-                setTimeout(function() { this._loadFromHash(); }.bind(this), 50);
-              } else {
-                this._loadFromHash();
-              }
+              this._loadFromHash();
             }.bind(this)
           });
         } else {
