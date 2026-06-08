@@ -134,9 +134,31 @@ sap.ui.define([
 
       try {
         var object = await context.requestObject();
-        var binding = this.getView().getModel().bindContext(path);
-        binding.setParameter(parameterName, object.ID);
-        await binding.invoke("$direct");
+        var actionName = path.replace("/", "").replace("(...)", "");
+        
+        var payload = {};
+        payload[parameterName] = object.ID;
+
+        var response = await fetch("/odata/v4/p2p/" + actionName, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error("Action failed.");
+        }
+
+        var responseText = await response.text();
+        var jsonResponse = responseText ? JSON.parse(responseText) : {};
+        if (jsonResponse.value) jsonResponse = JSON.parse(jsonResponse.value);
+        
+        if (jsonResponse.nextEntity && jsonResponse.nextId) {
+          MessageToast.show(successText + ". Redirecting to next stage...");
+          window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId);
+          return;
+        }
+
         MessageToast.show(successText);
         this.getView().getModel().refresh();
       } catch (error) {

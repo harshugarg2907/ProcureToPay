@@ -185,8 +185,16 @@ sap.ui.define([
           throw new Error("Create failed.");
         }
 
+        var responseData = await response.json();
+        var newId = responseData.ID || (responseData.value && responseData.value.ID);
+
         MessageToast.show("Created");
-        this._loadRows();
+        
+        if (newId) {
+          window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(newId);
+        } else {
+          this._loadRows();
+        }
       } catch (error) {
         MessageBox.error(error.message || "Create failed.");
       }

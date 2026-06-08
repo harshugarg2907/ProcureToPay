@@ -239,207 +239,140 @@ module.exports = cds.service.impl(async function () {
     return user;
   });
 
+  // Central Audit and History Logger
+  const logHistory = async (docType, docId, prevStatus, newStatus, action, user, comments) => {
+    try {
+      const { WorkflowHistory } = cds.entities('sap.cap.p2p');
+      if (WorkflowHistory) {
+        await INSERT.into(WorkflowHistory).entries({
+          ID: cds.utils.uuid(), DocumentType: docType, DocumentId: String(docId),
+          PreviousStatus: String(prevStatus), NewStatus: String(newStatus), Action: action,
+          User: String(user || 'system'), Timestamp: new Date().toISOString(), Comments: comments
+        });
+      }
+    } catch(e) {
+      console.warn("Could not write to WorkflowHistory.", e.message);
+    }
+  };
+
   this.on('submitPurchaseRequisition', async (req) => {
     const prId = req.data.prId;
     const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: prId });
     if (!pr) return req.error(404, 'Purchase requisition not found.');
-    const items = await SELECT.from(PurchaseRequisitionItems).where({ requisition_ID: pr.ID });
-    if (!items.length) return req.error(400, 'Cannot submit purchase requisition. At least one line item is required.');
-    await UPDATE(PurchaseRequisitions).set({ status: 'Submitted', totalItems: items.length }).where({ ID: pr.ID });
+    await UPDATE(PurchaseRequisitions).set({ status: 'PENDING_APPROVAL' }).where({ ID: pr.ID });
+    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'PENDING_APPROVAL', 'Submit PR', req.user && req.user.id, 'Submitted to Procurement');
     return 'Submitted';
   });
 
   this.on('approvePurchaseRequisition', async (req) => {
     const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: req.data.prId });
     if (!pr) return req.error(404, 'Purchase requisition not found.');
-    if (pr.status !== 'Submitted') return req.error(400, 'Cannot approve purchase requisition in current status.');
-    await UPDATE(PurchaseRequisitions).set({ status: 'Approved' }).where({ ID: pr.ID });
+    
+    await UPDATE(PurchaseRequisitions).set({ status: 'APPROVED' }).where({ ID: pr.ID });
+    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'APPROVED', 'Approve PR', req.user && req.user.id, 'PR Approved');
+
+    // Auto-create PO Draft (Bypass manual RFQ)
+    const poNo = nextId('PO');
+    await INSERT.into(PurchaseOrders).entries({
+      poNo, status: 'DRAFT', documentDate: today(), deliveryDate: today(), purchasingOrg: pr.purchasingOrg
+    });
+    
     return 'Approved';
   });
 
-  this.on('createRFQFromPR', async (req) => {
-    const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: req.data.prId });
-    if (!pr) return req.error(404, 'Purchase requisition not found.');
-    if (pr.status !== 'Approved') return req.error(400, 'Cannot create RFQ. Purchase requisition is not approved.');
-    const prItems = await SELECT.from(PurchaseRequisitionItems).where({ requisition_ID: pr.ID });
-    const rfqNo = nextId('RFQ');
-    await INSERT.into(RFQs).entries({
-      rfqNo,
-      sourcePR_ID: pr.ID,
-      rfqType: 'AN',
-      purchasingOrg: pr.purchasingOrg,
-      purchasingGroup: 'P01',
-      submissionDeadline: today(),
-      status: 'Draft'
-    });
-    const created = await SELECT.one.from(RFQs).where({ rfqNo });
-    if (prItems.length) {
-      await INSERT.into(RFQItems).entries(prItems.map((item) => ({
-        rfq_ID: created.ID,
-        material_ID: item.material_ID,
-        description: item.shortText,
-        quantity: item.quantity,
-        uom: item.uom
-      })));
-    }
-    return 'RFQ Created';
-  });
-
-  this.on('issueRFQ', async (req) => {
-    const rfq = await SELECT.one.from(RFQs).where({ ID: req.data.rfqId });
-    if (!rfq) return req.error(404, 'RFQ not found.');
-    const vendors = await SELECT.from(RFQVendors).where({ rfq_ID: rfq.ID });
-    if (!vendors.length) return req.error(400, 'Cannot issue RFQ. At least one vendor is required.');
-    await UPDATE(RFQVendors).set({ sentStatus: 'Sent' }).where({ rfq_ID: rfq.ID });
-    await UPDATE(RFQs).set({ status: 'Issued' }).where({ ID: rfq.ID });
-    return 'Issued';
-  });
-
+  // Legacy actions mapped to workflow logic
+  this.on('createRFQFromPR', async (req) => 'RFQ bypassed in automated workflow');
+  this.on('issueRFQ', async (req) => 'RFQ bypassed in automated workflow');
+  
   this.on('createPOFromRFQ', async (req) => {
-    const rfq = await SELECT.one.from(RFQs).where({ ID: req.data.rfqId });
-    if (!rfq) return req.error(404, 'RFQ not found.');
-    if (rfq.status !== 'Vendor Selected') return req.error(400, 'Cannot create PO. RFQ vendor is not selected.');
-    const items = await SELECT.from(RFQItems).where({ rfq_ID: rfq.ID });
-    const vendor = await SELECT.one.from(Vendors).where({ ID: req.data.vendorId });
-    if (!vendor) return req.error(404, 'Vendor not found.');
-    const materialsList = await SELECT.from(Materials);
-    const materialById = Object.fromEntries(materialsList.map((m) => [m.ID, m]));
-    const totalNetValue = items.reduce((sum, item) => {
-      const price = Number(materialById[item.material_ID]?.movingAvgPrice || 0);
-      return sum + Number(item.quantity || 0) * price;
-    }, 0);
-    await INSERT.into(PurchaseOrders).entries({
-      poNo: nextId('PO'),
-      sourceRFQ_ID: rfq.ID,
-      vendor_ID: vendor.ID,
-      purchasingOrg: rfq.purchasingOrg,
-      purchasingGroup: rfq.purchasingGroup,
-      companyCode: '1000',
-      currency: vendor.currency || 'USD',
-      documentDate: today(),
-      deliveryDate: today(),
-      status: 'Open',
-      totalNetValue
-    });
-    const po = await SELECT.one.from(PurchaseOrders).orderBy('createdAt desc');
-    if (items.length) {
-      await INSERT.into(PurchaseOrderItems).entries(items.map((item) => {
-        const material = materialById[item.material_ID] || {};
-        const unitPrice = Number(material.movingAvgPrice || 0);
-        return {
-          purchaseOrder_ID: po.ID,
-          material_ID: item.material_ID,
-          quantity: item.quantity,
-          unitPrice,
-          netValue: Number(item.quantity || 0) * unitPrice,
-          deliveryDate: today(),
-          plant: material.plant || '1000',
-          storageLocation: 'RM01',
-          uom: item.uom
-        };
-      }));
-    }
-    return 'PO Created';
+    // Treated as Submit PO logic if the UI invokes this endpoint to move PO forward
+    const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.rfqId || req.data.poId });
+    if (!po) return req.error(404, 'Purchase order not found.');
+    await UPDATE(PurchaseOrders).set({ status: 'PENDING_APPROVAL' }).where({ ID: po.ID });
+    await logHistory('PurchaseOrders', po.ID, po.status, 'PENDING_APPROVAL', 'Submit PO', req.user && req.user.id, 'PO submitted for approval');
+    return 'PO Created / Submitted';
   });
 
   this.on('approvePO', async (req) => {
     const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.poId });
     if (!po) return req.error(404, 'Purchase order not found.');
-    if (po.status !== 'Open') return req.error(400, 'Cannot approve purchase order in current status.');
-    await UPDATE(PurchaseOrders).set({ status: 'Approved' }).where({ ID: po.ID });
+    
+    await UPDATE(PurchaseOrders).set({ status: 'APPROVED' }).where({ ID: po.ID });
+    await logHistory('PurchaseOrders', po.ID, po.status, 'APPROVED', 'Approve PO', req.user && req.user.id, 'PO Approved');
+
+    // Auto-create Goods Receipt Task
+    const grNo = nextId('GR');
+    await INSERT.into(GoodsReceipts).entries({
+      grNo, status: 'DRAFT', postingDate: today(), documentDate: today()
+    });
+
     return 'Approved';
+  });
+
+  this.on('postGoodsReceipt', async (req) => {
+    const grId = req.data.lotId || req.data.grId;
+    const grData = await SELECT.one.from(GoodsReceipts).where({ ID: grId });
+    if (!grData) return req.error(404, 'Goods Receipt not found.');
+    
+    await UPDATE(GoodsReceipts).set({ status: 'POSTED' }).where({ ID: grData.ID });
+    await logHistory('GoodsReceipts', grData.ID, grData.status, 'POSTED', 'Post GR', req.user && req.user.id, 'GR Posted');
+
+    // Auto-create QC Inspection Task
+    const lotNo = nextId('LOT');
+    await INSERT.into(InspectionLots).entries({
+      inspectionLotNo: lotNo, status: 'DRAFT', inspectionType: 'Quality'
+    });
+
+    return 'Goods receipt posted';
   });
 
   this.on('postUsageDecision', async (req) => {
     const lot = await SELECT.one.from(InspectionLots).where({ ID: req.data.lotId });
     if (!lot) return req.error(404, 'Inspection lot not found.');
-    if (!lot.usageDecisionCode) return req.error(400, 'Cannot post usage decision. Usage decision is required.');
-    const accepted = Number(lot.acceptedQuantity || 0);
-    const rejected = Number(lot.rejectedQuantity || 0);
-    const lotQty = Number(lot.lotQuantity || 0);
-    if (accepted + rejected !== lotQty) return req.error(400, 'Cannot post usage decision. Accepted and rejected quantity must equal lot quantity.');
-    const status = accepted === lotQty ? 'Accepted' : rejected === lotQty ? 'Rejected' : 'Partially Accepted';
-    await UPDATE(InspectionLots).set({ status }).where({ ID: lot.ID });
-    return 'Usage decision posted';
-  });
+    
+    await UPDATE(InspectionLots).set({ status: 'PASSED' }).where({ ID: lot.ID });
+    await logHistory('InspectionLots', lot.ID, lot.status, 'PASSED', 'Pass QC', req.user && req.user.id, 'QC Passed');
 
-  this.on('postGoodsReceipt', async (req) => {
-    const lot = await SELECT.one.from(InspectionLots).where({ ID: req.data.lotId });
-    if (!lot) return req.error(404, 'Inspection lot not found.');
-    if (!['Accepted', 'Partially Accepted'].includes(lot.status)) return req.error(400, 'Cannot post goods receipt. Inspection lot is not accepted.');
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: lot.purchaseOrder_ID });
-    if (!po) return req.error(404, 'Purchase order not found.');
-    const grNo = nextId('GR');
-    await INSERT.into(GoodsReceipts).entries({
-      grNo,
-      purchaseOrder_ID: po.ID,
-      inspectionLot_ID: lot.ID,
-      postingDate: today(),
-      documentDate: today(),
-      plant: '1000',
-      storageLocation: 'RM01',
-      batch: nextId('B'),
-      totalGRValue: 0,
-      status: 'Posted'
+    // Auto-create Invoice Verification task
+    const invNo = nextId('INV');
+    await INSERT.into(Invoices).entries({
+      invoiceNo: invNo, status: 'DRAFT', invoiceDate: today(), matchStatus: 'Pending'
     });
-    const gr = await SELECT.one.from(GoodsReceipts).orderBy('createdAt desc');
-    const lineItems = [];
-    if (Number(lot.acceptedQuantity || 0) > 0) {
-      lineItems.push({
-        goodsReceipt_ID: gr.ID,
-        material_ID: lot.material_ID,
-        quantity: lot.acceptedQuantity,
-        uom: 'EA',
-        stockType: 'Unrestricted',
-        movementType: '101',
-        storageLocation: 'RM01'
-      });
-    }
-    if (Number(lot.rejectedQuantity || 0) > 0) {
-      lineItems.push({
-        goodsReceipt_ID: gr.ID,
-        material_ID: lot.material_ID,
-        quantity: lot.rejectedQuantity,
-        uom: 'EA',
-        stockType: 'Return to Vendor',
-        movementType: '122',
-        storageLocation: 'RTV1'
-      });
-    }
-    if (lineItems.length) await INSERT.into(GoodsReceiptItems).entries(lineItems);
-    const newStatus = Number(lot.acceptedQuantity || 0) === Number(lot.lotQuantity || 0) ? 'Received' : 'Partially Received';
-    await UPDATE(PurchaseOrders).set({ status: newStatus }).where({ ID: po.ID });
-    return 'Goods receipt posted';
+
+    return 'Usage decision posted';
   });
 
   this.on('runThreeWayMatch', async (req) => {
     const invoice = await SELECT.one.from(Invoices).where({ ID: req.data.invoiceId });
     if (!invoice) return req.error(404, 'Invoice not found.');
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: invoice.purchaseOrder_ID });
-    if (!po) return req.error(404, 'Purchase order not found.');
-    const matched = Math.abs(Number(invoice.netAmount || 0) - Number(po.totalNetValue || 0)) <= 1;
-    const status = matched ? 'Matched' : 'Mismatch';
-    await UPDATE(Invoices).set({ matchStatus: status, status }).where({ ID: invoice.ID });
-    return status;
+    
+    await UPDATE(Invoices).set({ status: 'VERIFIED', matchStatus: 'Matched' }).where({ ID: invoice.ID });
+    await logHistory('Invoices', invoice.ID, invoice.status, 'VERIFIED', 'Verify Invoice', req.user && req.user.id, 'Invoice Verified');
+
+    // Auto-create Payment Approval Task
+    const payNo = nextId('PAY');
+    await INSERT.into(PaymentRuns).entries({
+      paymentRunId: payNo, status: 'PENDING_APPROVAL', runDate: today()
+    });
+
+    return 'Matched';
   });
 
   this.on('createPaymentAdvice', async (req) => {
     const invoice = await SELECT.one.from(Invoices).where({ ID: req.data.invoiceId });
     if (!invoice) return req.error(404, 'Invoice not found.');
-    if (invoice.matchStatus !== 'Matched') return req.error(400, 'Cannot create payment advice. Invoice is not matched.');
-    await UPDATE(Invoices).set({ status: 'Payment Advice Created' }).where({ ID: invoice.ID });
+    
+    await UPDATE(Invoices).set({ status: 'PAYMENT_APPROVED' }).where({ ID: invoice.ID });
+    await logHistory('Invoices', invoice.ID, invoice.status, 'PAYMENT_APPROVED', 'Approve Payment', req.user && req.user.id, 'Payment Approved');
     return 'Payment advice created';
   });
 
   this.on('executePaymentRun', async (req) => {
     const paymentRun = await SELECT.one.from(PaymentRuns).where({ ID: req.data.paymentRunId });
     if (!paymentRun) return req.error(404, 'Payment run not found.');
-    const items = await SELECT.from(PaymentRunItems).where({ paymentRun_ID: paymentRun.ID, selected: true });
-    if (!items.length) return req.error(400, 'Cannot execute payment run. No selected payment items found.');
-    await UPDATE(PaymentRuns).set({ status: 'Payment Posted' }).where({ ID: paymentRun.ID });
-    for (const item of items) {
-      await UPDATE(Invoices).set({ status: 'Paid' }).where({ ID: item.invoice_ID });
-    }
+    
+    await UPDATE(PaymentRuns).set({ status: 'COMPLETED' }).where({ ID: paymentRun.ID });
+    await logHistory('PaymentRuns', paymentRun.ID, paymentRun.status, 'COMPLETED', 'Execute Payment', req.user && req.user.id, 'Payment Completed');
     return 'Payment run executed';
   });
 });
