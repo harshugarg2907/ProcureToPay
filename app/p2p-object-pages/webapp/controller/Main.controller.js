@@ -75,31 +75,31 @@ sap.ui.define([
       label: "RFQ",
       titleField: "rfqNo",
       backApp: "LIST_OBJECT", backParams: "?entity=RFQs",
-      fields: [["RFQ Number", "rfqNo"], ["RFQ Type", "rfqType"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Submission Deadline", "submissionDeadline"], ["Status", "status"]]
+      fields: [["RFQ Number", "rfqNo"], ["Source PR", "sourcePR/prNo"], ["RFQ Type", "rfqType"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Submission Deadline", "submissionDeadline"], ["Status", "status"]]
     },
     PurchaseOrders: {
       label: "Purchase Order",
       titleField: "poNo",
       backApp: "LIST_OBJECT", backParams: "?entity=PurchaseOrders",
-      fields: [["PO Number", "poNo"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Company Code", "companyCode"], ["Currency", "currency"], ["Document Date", "documentDate"], ["Delivery Date", "deliveryDate"], ["Status", "status"], ["Total Net Value", "totalNetValue"]]
+      fields: [["PO Number", "poNo"], ["Source RFQ", "sourceRFQ/rfqNo"], ["Source PR", "sourcePR/prNo"], ["Vendor", "vendor/name"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Company Code", "companyCode"], ["Currency", "currency"], ["Document Date", "documentDate"], ["Delivery Date", "deliveryDate"], ["Status", "status"], ["Total Net Value", "totalNetValue"]]
     },
     InspectionLots: {
       label: "Inspection Lot",
       titleField: "inspectionLotNo",
       backApp: "LIST_OBJECT", backParams: "?entity=InspectionLots",
-      fields: [["Inspection Lot", "inspectionLotNo"], ["Inspection Type", "inspectionType"], ["Lot Quantity", "lotQuantity"], ["Accepted Quantity", "acceptedQuantity"], ["Rejected Quantity", "rejectedQuantity"], ["Usage Decision", "usageDecisionCode"], ["Rejection Reason", "rejectionReason"], ["Status", "status"]]
+      fields: [["Inspection Lot", "inspectionLotNo"], ["PO Number", "purchaseOrder/poNo"], ["Vendor", "vendor/name"], ["Inspection Type", "inspectionType"], ["Lot Quantity", "lotQuantity"], ["Accepted Quantity", "acceptedQuantity"], ["Rejected Quantity", "rejectedQuantity"], ["Usage Decision", "usageDecisionCode"], ["Rejection Reason", "rejectionReason"], ["Status", "status"]]
     },
     GoodsReceipts: {
       label: "Goods Receipt",
       titleField: "grNo",
       backApp: "LIST_OBJECT", backParams: "?entity=GoodsReceipts",
-      fields: [["GR Number", "grNo"], ["Posting Date", "postingDate"], ["Document Date", "documentDate"], ["Plant", "plant"], ["Storage Location", "storageLocation"], ["Batch", "batch"], ["Total GR Value", "totalGRValue"], ["Status", "status"]]
+      fields: [["GR Number", "grNo"], ["PO Number", "purchaseOrder/poNo"], ["Posting Date", "postingDate"], ["Document Date", "documentDate"], ["Plant", "plant"], ["Storage Location", "storageLocation"], ["Batch", "batch"], ["Total GR Value", "totalGRValue"], ["Status", "status"]]
     },
     Invoices: {
       label: "Invoice",
       titleField: "invoiceNo",
       backApp: "LIST_OBJECT", backParams: "?entity=Invoices",
-      fields: [["Invoice Number", "invoiceNo"], ["Invoice Date", "invoiceDate"], ["Posting Date", "postingDate"], ["Currency", "currency"], ["Payment Terms", "paymentTerms"], ["Net Amount", "netAmount"], ["Tax Amount", "taxAmount"], ["Total Payable", "totalPayable"], ["Match Status", "matchStatus"], ["Status", "status"]]
+      fields: [["Invoice Number", "invoiceNo"], ["PO Number", "purchaseOrder/poNo"], ["GR Number", "goodsReceipt/grNo"], ["Vendor", "vendor/name"], ["Invoice Date", "invoiceDate"], ["Posting Date", "postingDate"], ["Currency", "currency"], ["Payment Terms", "paymentTerms"], ["Net Amount", "netAmount"], ["Tax Amount", "taxAmount"], ["Total Payable", "totalPayable"], ["Match Status", "matchStatus"], ["Status", "status"]]
     },
     PaymentRuns: {
       label: "Payment Run",
@@ -123,10 +123,11 @@ sap.ui.define([
 
   var ITEMS_CONFIG = {
     PurchaseRequisitions: "items",
-    RFQs: "vendors,items",
-    PurchaseOrders: "items",
-    InspectionLots: "characteristics",
-    GoodsReceipts: "items",
+    RFQs: "vendors,items,sourcePR",
+    PurchaseOrders: "items,sourceRFQ,sourcePR,vendor",
+    InspectionLots: "characteristics,purchaseOrder,material,vendor",
+    GoodsReceipts: "items,purchaseOrder,inspectionLot",
+    Invoices: "vendor,purchaseOrder,goodsReceipt",
     PaymentRuns: "items"
   };
 
@@ -156,6 +157,19 @@ sap.ui.define([
       Auth.applyAuthHeader(this.getOwnerComponent().getModel());
       Header.apply(this, "Object Detail");
       this._loadFromHash();
+    },
+
+    formatJSON: function (data) {
+      if (!data) return "";
+      return data.map(function(item, index) {
+        var parts = [];
+        for(var key in item) {
+          if (item[key] !== null && typeof item[key] !== 'object' && key !== 'ID' && key !== 'IsActiveEntity' && key !== 'HasActiveEntity' && key !== 'createdAt' && key !== 'createdBy' && key !== 'modifiedAt' && key !== 'modifiedBy') {
+             parts.push(key + ": " + item[key]);
+          }
+        }
+        return "[" + (index + 1) + "] " + parts.join(" | ");
+      }).join("\n\n");
     },
 
     onBack: function () {
@@ -222,7 +236,6 @@ sap.ui.define([
     onSubmitPR: function () { this._invokeAction("submitPurchaseRequisition", "prId", {}); },
     onApprovePR: function () { this._invokeAction("approvePurchaseRequisition", "prId", { comments: "Approved" }); },
     
-    onCreateRFQ: function () { this._invokeAction("createOrGetRFQFromPR", "prId", {}); },
     onAddVendor: function () { 
       this._openActionDialog("Add Vendor", [{ label: "Vendor ID", id: "rfqVendor", type: "string" }], "addVendorToRFQ", "rfqId", ["vendorId"]); 
     },
@@ -259,11 +272,9 @@ sap.ui.define([
         { label: "Storage Location", id: "grLoc", type: "string", value: "RM01" },
         { label: "Batch", id: "grBatch", type: "string" },
         { label: "Received Qty", id: "grQty", type: "number" }
-      ], "postGoodsReceipt", "poId", ["postingDate", "documentDate", "plant", "storageLocation", "batch", "receivedQuantity"]); 
+      ], "postGoodsReceipt", "grId", ["postingDate", "documentDate", "plant", "storageLocation", "batch", "receivedQuantity"]); 
     },
 
-    onCreateInspection: function () { this._invokeAction("createOrGetInspectionLotFromGR", "grId", {}); },
-    
     onPostUsageDecision: function () { 
       this._openActionDialog("Post Usage Decision", [
         { label: "Accepted Qty", id: "qcAccept", type: "number" },
@@ -272,22 +283,7 @@ sap.ui.define([
       ], "postUsageDecision", "lotId", ["acceptedQuantity", "rejectedQuantity", "usageDecisionCode"]); 
     },
     
-    onCreateInvoice: function () { 
-      this._openActionDialog("Create Invoice", [
-        { label: "Invoice Ref", id: "invRef", type: "string" },
-        { label: "Tax Amount", id: "invTax", type: "number", value: 0 },
-        { label: "Due Date", id: "invDue", type: "date" }
-      ], "createOrGetInvoiceFromQC", "lotId", ["invoiceRef", "taxAmount", "dueDate"]); 
-    },
-    
     onVerifyInvoice: function () { this._invokeAction("verifyInvoice", "invoiceId", {}); },
-    
-    onCreatePaymentRun: function () { 
-      this._openActionDialog("Create Payment Run", [
-        { label: "Payment Method (BANK/UPI)", id: "payMethod", type: "string" },
-        { label: "Payment Date", id: "payDate", type: "date" }
-      ], "createOrGetPaymentRunFromInvoice", "invoiceId", ["paymentMethod", "paymentDate"]); 
-    },
     
     onExecutePaymentRun: function () { this._invokeAction("executePaymentRun", "paymentRunId", {}); },
     onReject: function () { this._updateObject({ status: "Rejected" }); },
@@ -403,13 +399,29 @@ sap.ui.define([
       var role = Auth.getSession().role;
       var titleValue = object[config.titleField] || id;
       var fields = config.fields.map(function (field) {
+        var val;
+        if (field[1].indexOf('/') !== -1) {
+          var parts = field[1].split('/');
+          val = object;
+          for (var i = 0; i < parts.length; i++) {
+            if (val) val = val[parts[i]];
+          }
+        } else {
+          val = object[field[1]];
+        }
         return {
           label: field[0],
           value: object[field[1]]
+          value: val
         };
       }).filter(function (field) {
         return field.value !== undefined && field.value !== null && field.value !== "";
       });
+
+      var dynamicLists = [];
+      if (object.items && object.items.length > 0) dynamicLists.push({ title: "Items", data: object.items });
+      if (object.vendors && object.vendors.length > 0) dynamicLists.push({ title: "Vendors", data: object.vendors });
+      if (object.characteristics && object.characteristics.length > 0) dynamicLists.push({ title: "Characteristics", data: object.characteristics });
 
       this.getView().getModel("detail").setData({
         pageTitle: config.label + " Detail",
@@ -419,6 +431,8 @@ sap.ui.define([
         id: id,
         object: object,
         fields: fields,
+        dynamicLists: dynamicLists,
+        hasDynamicLists: dynamicLists.length > 0,
         canEdit: RoleAccess.canWriteEntity(entity, role),
         canDelete: role === "P2P_ADMIN",
         actions: this._getActions(entity, role, object.status)
@@ -429,8 +443,7 @@ sap.ui.define([
     _getActions: function (entity, role, status) {
       return {
         submitPR: entity === "PurchaseRequisitions" && status === "CREATED" && RoleAccess.canExecuteAction("submitPurchaseRequisition", role),
-        approvePR: entity === "PurchaseRequisitions" && status === "PENDING_APPROVAL" && RoleAccess.canExecuteAction("approvePurchaseRequisition", role),
-        createRFQ: entity === "PurchaseRequisitions" && status === "APPROVED" && RoleAccess.canExecuteAction("createOrGetRFQFromPR", role),
+        approvePR: entity === "PurchaseRequisitions" && status === "SUBMITTED" && RoleAccess.canExecuteAction("approvePurchaseRequisition", role),
         
         addVendor: entity === "RFQs" && (status === "DRAFT" || status === "VENDORS_ASSIGNED") && RoleAccess.canExecuteAction("addVendorToRFQ", role),
         issueRFQ: entity === "RFQs" && status === "VENDORS_ASSIGNED" && RoleAccess.canExecuteAction("issueRFQ", role),
@@ -440,14 +453,11 @@ sap.ui.define([
         
         submitPO: entity === "PurchaseOrders" && status === "DRAFT" && RoleAccess.canExecuteAction("submitPO", role),
         approvePO: entity === "PurchaseOrders" && status === "PENDING_APPROVAL" && RoleAccess.canExecuteAction("approvePO", role),
-        postGoodsReceipt: entity === "PurchaseOrders" && status === "APPROVED" && RoleAccess.canExecuteAction("postGoodsReceipt", role),
-        createInspection: entity === "GoodsReceipts" && status === "POSTED" && RoleAccess.canExecuteAction("createOrGetInspectionLotFromGR", role),
+        postGoodsReceipt: entity === "GoodsReceipts" && status === "DRAFT" && RoleAccess.canExecuteAction("postGoodsReceipt", role),
         postUsageDecision: entity === "InspectionLots" && status === "OPEN" && RoleAccess.canExecuteAction("postUsageDecision", role),
-        createInvoice: entity === "InspectionLots" && status === "PASSED" && RoleAccess.canExecuteAction("createOrGetInvoiceFromQC", role),
-        verifyInvoice: entity === "Invoices" && status === "CREATED" && RoleAccess.canExecuteAction("verifyInvoice", role),
-        createPayment: entity === "Invoices" && status === "VERIFIED" && RoleAccess.canExecuteAction("createOrGetPaymentRunFromInvoice", role),
-        executePaymentRun: entity === "PaymentRuns" && status === "CREATED" && RoleAccess.canExecuteAction("executePaymentRun", role),
-        reject: ["PurchaseRequisitions", "PurchaseOrders", "Invoices"].indexOf(entity) !== -1 && (status === "PENDING_APPROVAL" || status === "CREATED") && RoleAccess.canWriteEntity(entity, role)
+        verifyInvoice: entity === "Invoices" && (status === "CREATED" || status === "DRAFT") && RoleAccess.canExecuteAction("verifyInvoice", role),
+        executePaymentRun: entity === "PaymentRuns" && (status === "CREATED" || status === "DRAFT") && RoleAccess.canExecuteAction("executePaymentRun", role),
+        reject: ["PurchaseRequisitions", "PurchaseOrders", "Invoices"].indexOf(entity) !== -1 && (status === "PENDING_APPROVAL" || status === "CREATED" || status === "SUBMITTED") && RoleAccess.canWriteEntity(entity, role)
       };
     },
 
@@ -524,17 +534,19 @@ sap.ui.define([
         var jsonResponse = responseText ? JSON.parse(responseText) : {};
         if (jsonResponse.value) jsonResponse = JSON.parse(jsonResponse.value);
         
-        if (jsonResponse.entity && jsonResponse.id && jsonResponse.entity !== detail.entity) {
-          MessageToast.show(jsonResponse.message + ". Opening target document...");
-          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.entity) + "/" + encodeURIComponent(jsonResponse.id));
-          this._loadFromHash();
-          return;
+        if (jsonResponse.message) {
+          var msg = jsonResponse.message;
+          if (jsonResponse.nextAssignedRole && jsonResponse.nextAssignedRole !== "NONE" && jsonResponse.nextAssignedRole !== "COMPLETED") {
+            msg += "\n\nTask forwarded to: " + jsonResponse.nextAssignedRole;
+          }
+          MessageBox.success(msg);
+        } else {
+          MessageToast.show("Action completed");
         }
       } catch (e) {
-        // Ignore JSON parsing errors
+        MessageToast.show("Action completed");
       }
 
-      MessageToast.show("Action completed");
       this._loadFromHash();
     }
   });

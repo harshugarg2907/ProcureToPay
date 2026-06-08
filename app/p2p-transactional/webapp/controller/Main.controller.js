@@ -154,13 +154,16 @@ sap.ui.define([
         var jsonResponse = responseText ? JSON.parse(responseText) : {};
         if (jsonResponse.value) jsonResponse = JSON.parse(jsonResponse.value);
         
-        if (jsonResponse.nextEntity && jsonResponse.nextId) {
-          MessageToast.show(successText + ". Redirecting to next stage...");
-          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId));
-          return;
+        if (jsonResponse.message) {
+          var msg = jsonResponse.message;
+          if (jsonResponse.nextAssignedRole && jsonResponse.nextAssignedRole !== "NONE" && jsonResponse.nextAssignedRole !== "COMPLETED") {
+            msg += "\n\nTask forwarded to: " + jsonResponse.nextAssignedRole;
+          }
+          MessageBox.success(msg);
+        } else {
+          MessageToast.show(successText);
         }
 
-        MessageToast.show(successText);
         this.getView().getModel().refresh();
       } catch (error) {
         MessageBox.error(error.message || "Action failed");

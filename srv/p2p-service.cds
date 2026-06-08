@@ -213,7 +213,6 @@ service P2PService @(path: '/odata/v4/p2p') {
   action approvePurchaseRequisition(prId: UUID, comments: String) returns String;
   action rejectPurchaseRequisition(prId: UUID, comments: String) returns String;
   
-  action createOrGetRFQFromPR(prId: UUID) returns String;
   action addVendorToRFQ(rfqId: UUID, vendorId: String) returns String;
   action issueRFQ(rfqId: UUID) returns String;
   action receiveQuotation(rfqId: UUID, vendorId: String, quotedAmount: Decimal, leadTime: Integer, remarks: String) returns String;
@@ -224,13 +223,10 @@ service P2PService @(path: '/odata/v4/p2p') {
   action approvePO(poId: UUID, comments: String) returns String;
   action rejectPO(poId: UUID, comments: String) returns String;
   
-  action postGoodsReceipt(poId: UUID, postingDate: Date, documentDate: Date, plant: String, storageLocation: String, batch: String, receivedQuantity: Decimal) returns String;
-  action createOrGetInspectionLotFromGR(grId: UUID) returns String;
+  action postGoodsReceipt(grId: UUID, postingDate: Date, documentDate: Date, plant: String, storageLocation: String, batch: String, receivedQuantity: Decimal) returns String;
   action postUsageDecision(lotId: UUID, acceptedQuantity: Decimal, rejectedQuantity: Decimal, usageDecisionCode: String) returns String;
   
-  action createOrGetInvoiceFromQC(lotId: UUID, invoiceRef: String, taxAmount: Decimal, dueDate: Date) returns String;
   action verifyInvoice(invoiceId: UUID) returns String;
-  action createOrGetPaymentRunFromInvoice(invoiceId: UUID, paymentMethod: String, paymentDate: Date) returns String;
   action executePaymentRun(paymentRunId: UUID) returns String;
 
   @readonly

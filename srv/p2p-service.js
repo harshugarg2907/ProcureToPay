@@ -209,6 +209,14 @@ module.exports = cds.service.impl(async function () {
     const entity = this.entities[entityName];
     this.before('CREATE', entity, (req) => {
       req.data[fieldName] = nextId(prefix);
+      
+      if (entityName === 'PurchaseRequisitions') { req.data.status = 'CREATED'; req.data.assignedRole = 'P2P_REQUESTER'; }
+      else if (entityName === 'RFQs') { req.data.status = 'DRAFT'; req.data.assignedRole = 'P2P_VENDOR_MANAGER'; }
+      else if (entityName === 'PurchaseOrders') { req.data.status = 'DRAFT'; req.data.assignedRole = 'P2P_BUYER'; }
+      else if (entityName === 'InspectionLots') { req.data.status = 'OPEN'; req.data.assignedRole = 'P2P_QUALITY_INSPECTOR'; }
+      else if (entityName === 'GoodsReceipts') { req.data.status = 'DRAFT'; req.data.assignedRole = 'P2P_AP_CLERK'; }
+      else if (entityName === 'Invoices') { req.data.status = 'DRAFT'; req.data.assignedRole = 'P2P_FINANCE_MANAGER'; }
+      else if (entityName === 'PaymentRuns') { req.data.status = 'DRAFT'; req.data.assignedRole = 'P2P_FINANCE_MANAGER'; }
     });
   }
 
@@ -260,38 +268,24 @@ module.exports = cds.service.impl(async function () {
     const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: prId });
     if (!pr) return req.error(404, 'Purchase requisition not found.');
     if (pr.status !== 'CREATED' && pr.status !== 'REJECTED') return req.error(400, 'Invalid status for submission.');
-    await UPDATE(PurchaseRequisitions).set({ status: 'PENDING_APPROVAL' }).where({ ID: pr.ID });
-    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'PENDING_APPROVAL', 'Submit PR', req.user && req.user.id, 'Submitted to Procurement');
-    return JSON.stringify({ message: "PR Submitted", entity: "PurchaseRequisitions", id: pr.ID, status: "PENDING_APPROVAL" });
+    await UPDATE(PurchaseRequisitions).set({ status: 'SUBMITTED', assignedRole: 'P2P_BUYER' }).where({ ID: pr.ID });
+    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'SUBMITTED', 'Submit PR', req.user && req.user.id, 'Submitted to Procurement');
+    return JSON.stringify({ message: "PR Submitted", currentEntity: "PurchaseRequisitions", currentId: pr.ID, currentStatus: "SUBMITTED", nextAssignedRole: "P2P_BUYER", nextWorkflowStage: "PR_APPROVAL" });
   });
 
   this.on('approvePurchaseRequisition', async (req) => {
     const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: req.data.prId });
     if (!pr) return req.error(404, 'Purchase requisition not found.');
-    if (pr.status !== 'PENDING_APPROVAL') return req.error(400, 'PR is not pending approval.');
-    await UPDATE(PurchaseRequisitions).set({ status: 'APPROVED' }).where({ ID: pr.ID });
+    if (pr.status !== 'SUBMITTED') return req.error(400, 'PR is not submitted.');
+    await UPDATE(PurchaseRequisitions).set({ status: 'APPROVED', assignedRole: 'COMPLETED' }).where({ ID: pr.ID });
     await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'APPROVED', 'Approve PR', req.user && req.user.id, req.data.comments || 'PR Approved');
-    return JSON.stringify({ message: "PR Approved", entity: "PurchaseRequisitions", id: pr.ID, status: "APPROVED" });
-  });
 
-  this.on('rejectPurchaseRequisition', async (req) => {
-    const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: req.data.prId });
-    await UPDATE(PurchaseRequisitions).set({ status: 'REJECTED' }).where({ ID: pr.ID });
-    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'REJECTED', 'Reject PR', req.user && req.user.id, req.data.comments);
-    return JSON.stringify({ message: "PR Rejected", entity: "PurchaseRequisitions", id: pr.ID, status: "REJECTED" });
-  });
-  
-  this.on('createOrGetRFQFromPR', async (req) => {
-    const { prId } = req.data;
-    const existingRFQ = await SELECT.one.from(RFQs).where({ sourcePR_ID: prId });
-    if (existingRFQ) return JSON.stringify({ message: "RFQ exists.", entity: "RFQs", id: existingRFQ.ID, status: existingRFQ.status });
-
-    const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: prId });
-    const items = await SELECT.from(PurchaseRequisitionItems).where({ requisition_ID: prId });
+    // Auto-Forward: Create RFQ
+    const items = await SELECT.from(PurchaseRequisitionItems).where({ requisition_ID: pr.ID });
     const rfqId = cds.utils.uuid();
     
     await INSERT.into(RFQs).entries({
-      ID: rfqId, rfqNo: nextId('RFQ'), sourcePR_ID: prId, status: 'DRAFT', 
+      ID: rfqId, rfqNo: nextId('RFQ'), sourcePR_ID: pr.ID, status: 'DRAFT', assignedRole: 'P2P_VENDOR_MANAGER',
       purchasingOrg: pr.purchasingOrg, submissionDeadline: today()
     });
     if (items.length > 0) {
@@ -299,8 +293,15 @@ module.exports = cds.service.impl(async function () {
         ID: cds.utils.uuid(), rfq_ID: rfqId, material_ID: item.material_ID, quantity: item.quantity, uom: item.uom, description: item.shortText
       })));
     }
-    await UPDATE(PurchaseRequisitions).set({ status: 'RFQ_CREATED' }).where({ ID: prId });
-    return JSON.stringify({ message: "RFQ Created", entity: "RFQs", id: rfqId, status: "DRAFT" });
+    
+    return JSON.stringify({ message: "PR Approved and RFQ Task created", currentEntity: "PurchaseRequisitions", currentId: pr.ID, currentStatus: "APPROVED", nextEntity: "RFQs", nextId: rfqId, nextAssignedRole: "P2P_VENDOR_MANAGER", nextWorkflowStage: "RFQ_CREATION" });
+  });
+
+  this.on('rejectPurchaseRequisition', async (req) => {
+    const pr = await SELECT.one.from(PurchaseRequisitions).where({ ID: req.data.prId });
+    await UPDATE(PurchaseRequisitions).set({ status: 'REJECTED', assignedRole: 'P2P_REQUESTER' }).where({ ID: pr.ID });
+    await logHistory('PurchaseRequisitions', pr.ID, pr.status, 'REJECTED', 'Reject PR', req.user && req.user.id, req.data.comments);
+    return JSON.stringify({ message: "PR Rejected", currentEntity: "PurchaseRequisitions", currentId: pr.ID, currentStatus: "REJECTED", nextAssignedRole: "P2P_REQUESTER" });
   });
 
   this.on('addVendorToRFQ', async (req) => {
@@ -329,13 +330,13 @@ module.exports = cds.service.impl(async function () {
   this.on('selectVendor', async (req) => {
     const { rfqId, vendorId } = req.data;
     await UPDATE(RFQs).set({ selectedVendor_ID: vendorId, status: 'VENDOR_SELECTED' }).where({ ID: rfqId });
-    return JSON.stringify({ message: "Vendor Selected", entity: "RFQs", id: rfqId, status: "VENDOR_SELECTED" });
+    return JSON.stringify({ message: "Vendor Selected", currentEntity: "RFQs", currentId: rfqId, currentStatus: "VENDOR_SELECTED", nextAssignedRole: "P2P_BUYER" });
   });
 
   this.on('createOrGetPOFromRFQ', async (req) => {
     const { rfqId, deliveryDate, currency, companyCode, purchasingOrg, purchasingGroup } = req.data;
     const existingPO = await SELECT.one.from(PurchaseOrders).where({ sourceRFQ_ID: rfqId });
-    if (existingPO) return JSON.stringify({ message: "PO exists.", entity: "PurchaseOrders", id: existingPO.ID, status: existingPO.status });
+    if (existingPO) return JSON.stringify({ message: "PO exists.", currentEntity: "PurchaseOrders", currentId: existingPO.ID, currentStatus: existingPO.status });
 
     const rfq = await SELECT.one.from(RFQs).where({ ID: rfqId });
     const items = await SELECT.from(RFQItems).where({ rfq_ID: rfqId });
@@ -343,7 +344,7 @@ module.exports = cds.service.impl(async function () {
     const poId = cds.utils.uuid();
 
     await INSERT.into(PurchaseOrders).entries({
-      ID: poId, poNo: nextId('PO'), sourceRFQ_ID: rfqId, vendor_ID: rfq.selectedVendor_ID, status: 'DRAFT', 
+      ID: poId, poNo: nextId('PO'), sourceRFQ_ID: rfqId, vendor_ID: rfq.selectedVendor_ID, status: 'DRAFT', assignedRole: 'P2P_BUYER',
       currency: currency || 'USD', documentDate: today(), deliveryDate: deliveryDate || today(), companyCode, purchasingOrg, purchasingGroup, totalNetValue: quotes ? quotes.quotedAmount : 0
     });
     if (items.length > 0) {
@@ -351,57 +352,51 @@ module.exports = cds.service.impl(async function () {
         ID: cds.utils.uuid(), purchaseOrder_ID: poId, material_ID: item.material_ID, quantity: item.quantity, uom: item.uom
       })));
     }
-    return JSON.stringify({ message: "PO Created", entity: "PurchaseOrders", id: poId, status: "DRAFT" });
+    await UPDATE(RFQs).set({ status: 'PO_CREATED', assignedRole: 'COMPLETED' }).where({ ID: rfqId });
+    return JSON.stringify({ message: "PO Task created", currentEntity: "RFQs", currentId: rfqId, currentStatus: "PO_CREATED", nextEntity: "PurchaseOrders", nextId: poId, nextAssignedRole: "P2P_BUYER", nextWorkflowStage: "PO_CREATION" });
   });
 
   this.on('submitPO', async (req) => {
     const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.poId });
     await UPDATE(PurchaseOrders).set({ status: 'PENDING_APPROVAL' }).where({ ID: po.ID });
-    return JSON.stringify({ message: "PO Submitted", entity: "PurchaseOrders", id: po.ID, status: "PENDING_APPROVAL" });
+    return JSON.stringify({ message: "PO Submitted for approval", currentEntity: "PurchaseOrders", currentId: po.ID, currentStatus: "PENDING_APPROVAL", nextAssignedRole: "P2P_BUYER" });
   });
 
   this.on('approvePO', async (req) => {
     const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.poId });
-    await UPDATE(PurchaseOrders).set({ status: 'APPROVED' }).where({ ID: po.ID });
+    await UPDATE(PurchaseOrders).set({ status: 'APPROVED', assignedRole: 'COMPLETED' }).where({ ID: po.ID });
     await logHistory('PurchaseOrders', po.ID, po.status, 'APPROVED', 'Approve PO', req.user && req.user.id, req.data.comments);
-    return JSON.stringify({ message: "PO Approved", entity: "PurchaseOrders", id: po.ID, status: "APPROVED" });
-  });
-  
-  this.on('rejectPO', async (req) => {
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.poId });
-    await UPDATE(PurchaseOrders).set({ status: 'REJECTED' }).where({ ID: po.ID });
-    return JSON.stringify({ message: "PO Rejected", entity: "PurchaseOrders", id: po.ID, status: "REJECTED" });
-  });
 
-  this.on('postGoodsReceipt', async (req) => {
-    const { poId, postingDate, documentDate, plant, storageLocation, batch, receivedQuantity } = req.data;
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: poId });
-    const existingGR = await SELECT.one.from(GoodsReceipts).where({ purchaseOrder_ID: poId });
-    if (existingGR) return JSON.stringify({ message: "GR exists.", entity: "GoodsReceipts", id: existingGR.ID, status: existingGR.status });
-
+    // Auto-Forward: Create GR Task
     const grId = cds.utils.uuid();
     await INSERT.into(GoodsReceipts).entries({
       ID: grId, grNo: nextId('GR'), purchaseOrder_ID: po.ID, 
-      postingDate: postingDate || today(), documentDate: documentDate || today(), 
-      plant: plant || '1000', storageLocation: storageLocation || 'RM01', batch, totalGRValue: po.totalNetValue || 0, status: 'POSTED'
+      postingDate: today(), documentDate: today(), 
+      plant: '1000', storageLocation: 'RM01', totalGRValue: po.totalNetValue || 0, status: 'DRAFT', assignedRole: 'P2P_AP_CLERK'
     });
     
-    await UPDATE(PurchaseOrders).set({ status: 'GR_POSTED' }).where({ ID: po.ID });
-    return JSON.stringify({ message: "GR Posted", entity: "GoodsReceipts", id: grId, status: "POSTED" });
+    return JSON.stringify({ message: "PO Approved and Goods Receipt task created", currentEntity: "PurchaseOrders", currentId: po.ID, currentStatus: "APPROVED", nextEntity: "GoodsReceipts", nextId: grId, nextAssignedRole: "P2P_AP_CLERK", nextWorkflowStage: "GOODS_RECEIPT" });
   });
 
-  this.on('createOrGetInspectionLotFromGR', async (req) => {
-    const { grId } = req.data;
-    const gr = await SELECT.one.from(GoodsReceipts).where({ ID: grId });
-    if (gr.inspectionLot_ID) return JSON.stringify({ message: "QC exists.", entity: "InspectionLots", id: gr.inspectionLot_ID, status: "OPEN" });
+  this.on('rejectPO', async (req) => {
+    const po = await SELECT.one.from(PurchaseOrders).where({ ID: req.data.poId });
+    await UPDATE(PurchaseOrders).set({ status: 'REJECTED', assignedRole: 'P2P_BUYER' }).where({ ID: po.ID });
+    return JSON.stringify({ message: "PO Rejected", currentEntity: "PurchaseOrders", currentId: po.ID, currentStatus: "REJECTED", nextAssignedRole: "P2P_BUYER" });
+  });
 
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: gr.purchaseOrder_ID });
+  this.on('postGoodsReceipt', async (req) => {
+    const { grId, postingDate, documentDate, plant, storageLocation, batch } = req.data;
+    const gr = await SELECT.one.from(GoodsReceipts).where({ ID: grId });
+    await UPDATE(GoodsReceipts).set({ status: 'POSTED', assignedRole: 'COMPLETED', postingDate, documentDate, plant, storageLocation, batch }).where({ ID: grId });
+
+    // Auto-Forward: Create QC Task
     const lotId = cds.utils.uuid();
     await INSERT.into(InspectionLots).entries({
-      ID: lotId, inspectionLotNo: nextId('LOT'), purchaseOrder_ID: po.ID, vendor_ID: po.vendor_ID, status: 'OPEN'
+      ID: lotId, inspectionLotNo: nextId('LOT'), purchaseOrder_ID: gr.purchaseOrder_ID, status: 'OPEN', assignedRole: 'P2P_QUALITY_INSPECTOR'
     });
     await UPDATE(GoodsReceipts).set({ inspectionLot_ID: lotId }).where({ ID: grId });
-    return JSON.stringify({ message: "QC Created", entity: "InspectionLots", id: lotId, status: "OPEN" });
+    
+    return JSON.stringify({ message: "Goods Receipt Posted and QC Task created", currentEntity: "GoodsReceipts", currentId: grId, currentStatus: "POSTED", nextEntity: "InspectionLots", nextId: lotId, nextAssignedRole: "P2P_QUALITY_INSPECTOR", nextWorkflowStage: "QC_INSPECTION" });
   });
 
   this.on('postUsageDecision', async (req) => {
@@ -409,61 +404,45 @@ module.exports = cds.service.impl(async function () {
     const lot = await SELECT.one.from(InspectionLots).where({ ID: lotId });
     
     const status = (rejectedQuantity > 0) ? 'FAILED' : 'PASSED';
-    await UPDATE(InspectionLots).set({ acceptedQuantity, rejectedQuantity, usageDecisionCode, status }).where({ ID: lot.ID });
-    return JSON.stringify({ message: "QC Completed", entity: "InspectionLots", id: lot.ID, status });
-  });
+    await UPDATE(InspectionLots).set({ acceptedQuantity, rejectedQuantity, usageDecisionCode, status, assignedRole: 'COMPLETED' }).where({ ID: lot.ID });
 
-  this.on('createOrGetInvoiceFromQC', async (req) => {
-    const { lotId, invoiceRef, taxAmount, dueDate } = req.data;
-    const lot = await SELECT.one.from(InspectionLots).where({ ID: lotId });
-    const gr = await SELECT.one.from(GoodsReceipts).where({ inspectionLot_ID: lotId });
-    const existingInv = await SELECT.one.from(Invoices).where({ goodsReceipt_ID: gr.ID });
-    if (existingInv) return JSON.stringify({ message: "Invoice exists.", entity: "Invoices", id: existingInv.ID, status: existingInv.status });
-
-    const po = await SELECT.one.from(PurchaseOrders).where({ ID: lot.purchaseOrder_ID });
-    const invId = cds.utils.uuid();
-    await INSERT.into(Invoices).entries({
-      ID: invId, invoiceNo: nextId('INV'), goodsReceipt_ID: gr.ID, purchaseOrder_ID: po.ID, vendor_ID: po.vendor_ID,
-      invoiceReference: invoiceRef, taxAmount: taxAmount || 0, netAmount: po.totalNetValue || 0, 
-      totalPayable: (Number(po.totalNetValue || 0) + Number(taxAmount || 0)), dueDate, status: 'CREATED', matchStatus: 'Pending'
-    });
-    return JSON.stringify({ message: "Invoice Created", entity: "Invoices", id: invId, status: "CREATED" });
+    if (status === 'PASSED') {
+      const invId = cds.utils.uuid();
+      await INSERT.into(Invoices).entries({
+        ID: invId, invoiceNo: nextId('INV'), purchaseOrder_ID: lot.purchaseOrder_ID, status: 'DRAFT', assignedRole: 'P2P_FINANCE_MANAGER',
+        invoiceDate: today(), postingDate: today(), dueDate: today(), matchStatus: 'Pending'
+      });
+      return JSON.stringify({ message: "QC Passed and Invoice Task created", currentEntity: "InspectionLots", currentId: lot.ID, currentStatus: "PASSED", nextEntity: "Invoices", nextId: invId, nextAssignedRole: "P2P_FINANCE_MANAGER", nextWorkflowStage: "INVOICE_VERIFICATION" });
+    }
+    
+    return JSON.stringify({ message: "QC Completed (Failed)", currentEntity: "InspectionLots", currentId: lot.ID, currentStatus: "FAILED", nextAssignedRole: "NONE" });
   });
 
   this.on('verifyInvoice', async (req) => {
     const invoice = await SELECT.one.from(Invoices).where({ ID: req.data.invoiceId });
-    await UPDATE(Invoices).set({ status: 'VERIFIED', matchStatus: 'Matched' }).where({ ID: invoice.ID });
-    return JSON.stringify({ message: "Invoice Verified", entity: "Invoices", id: invoice.ID, status: "VERIFIED" });
-  });
+    await UPDATE(Invoices).set({ status: 'VERIFIED', matchStatus: 'Matched', assignedRole: 'COMPLETED' }).where({ ID: invoice.ID });
 
-  this.on('createOrGetPaymentRunFromInvoice', async (req) => {
-    const { invoiceId, paymentMethod, paymentDate } = req.data;
-    const existingPay = await SELECT.one.from(PaymentRunItems).where({ invoice_ID: invoiceId });
-    if (existingPay) return JSON.stringify({ message: "Payment Run exists.", entity: "PaymentRuns", id: existingPay.paymentRun_ID, status: "CREATED" });
-    
-    const invoice = await SELECT.one.from(Invoices).where({ ID: invoiceId });
+    // Auto-Forward: Create Payment Run Task
     const payId = cds.utils.uuid();
     
     await INSERT.into(PaymentRuns).entries({
-      ID: payId, paymentRunId: nextId('PAY'), runDate: today(), nextPaymentDate: paymentDate || today(), paymentMethod,
-      totalPaymentAmount: invoice.totalPayable, status: 'CREATED'
+      ID: payId, paymentRunId: nextId('PAY'), runDate: today(), status: 'DRAFT', assignedRole: 'P2P_FINANCE_MANAGER'
     });
     await INSERT.into(PaymentRunItems).entries({
-      ID: cds.utils.uuid(), paymentRun_ID: payId, invoice_ID: invoice.ID, vendor_ID: invoice.vendor_ID, netPayment: invoice.totalPayable, selected: true
+      ID: cds.utils.uuid(), paymentRun_ID: payId, invoice_ID: invoice.ID, vendor_ID: invoice.vendor_ID, selected: true
     });
     
-    await UPDATE(Invoices).set({ status: 'PAYMENT_PENDING' }).where({ ID: invoice.ID });
-    return JSON.stringify({ message: "Payment Run Created", entity: "PaymentRuns", id: payId, status: "CREATED" });
+    return JSON.stringify({ message: "Invoice Verified and Payment Run Task created", currentEntity: "Invoices", currentId: invoice.ID, currentStatus: "VERIFIED", nextEntity: "PaymentRuns", nextId: payId, nextAssignedRole: "P2P_FINANCE_MANAGER", nextWorkflowStage: "PAYMENT_RUN" });
   });
 
   this.on('executePaymentRun', async (req) => {
     const paymentRun = await SELECT.one.from(PaymentRuns).where({ ID: req.data.paymentRunId });
-    await UPDATE(PaymentRuns).set({ status: 'PAYMENT_POSTED' }).where({ ID: paymentRun.ID });
+    await UPDATE(PaymentRuns).set({ status: 'PAYMENT_POSTED', assignedRole: 'COMPLETED' }).where({ ID: paymentRun.ID });
     
     const items = await SELECT.from(PaymentRunItems).where({ paymentRun_ID: paymentRun.ID });
     for (let item of items) {
       await UPDATE(Invoices).set({ status: 'PAID' }).where({ ID: item.invoice_ID });
     }
-    return JSON.stringify({ message: "Payment Executed", entity: "PaymentRuns", id: paymentRun.ID, status: "PAYMENT_POSTED" });
+    return JSON.stringify({ message: "Payment Executed", currentEntity: "PaymentRuns", currentId: paymentRun.ID, currentStatus: "PAYMENT_POSTED", nextAssignedRole: "NONE" });
   });
 });

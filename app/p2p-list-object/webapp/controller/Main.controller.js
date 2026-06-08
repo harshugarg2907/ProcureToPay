@@ -132,6 +132,14 @@ sap.ui.define([
           rows = rows.filter(function (row) { return JSON.stringify(row).toLowerCase().indexOf(vendor.toLowerCase()) !== -1; });
         }
 
+        var currentRole = Auth.getSession().role;
+        if (currentRole !== "P2P_ADMIN") {
+          rows = rows.filter(function (row) {
+            if (!row.hasOwnProperty("assignedRole")) return true;
+            return row.assignedRole === currentRole || row.assignedRole === 'COMPLETED' || row.createdBy === Auth.getSession().userId;
+          });
+        }
+
         this._rows = rows;
         this.getView().getModel("list").setProperty("/rows", rows);
       } catch (error) {
