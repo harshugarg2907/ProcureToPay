@@ -18,7 +18,7 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity Users as projection on db.Users {
@@ -55,21 +55,21 @@ service P2PService @(path: '/odata/v4/p2p') {
   }
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_VENDOR_MANAGER', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN', 'P2P_VENDOR_MANAGER'] }
   ]
   entity Vendors as projection on db.Vendors;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_VENDOR_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN', 'P2P_BUYER'] }
   ]
   entity Materials as projection on db.Materials;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_REQUESTER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_REQUESTER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity PurchaseRequisitions as projection on db.PurchaseRequisitions {
     key ID,
@@ -87,9 +87,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity RFQs as projection on db.RFQs {
     key ID,
@@ -108,9 +108,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity PurchaseOrders as projection on db.PurchaseOrders {
@@ -133,9 +133,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'QCInspector', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'QCInspector'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_QUALITY_INSPECTOR', 'P2P_BUYER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_QUALITY_INSPECTOR'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity InspectionLots as projection on db.InspectionLots {
@@ -158,9 +158,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'GoodsReceiptOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'GoodsReceiptOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_AP_CLERK', 'P2P_QUALITY_INSPECTOR'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity GoodsReceipts as projection on db.GoodsReceipts {
     key ID,
@@ -181,17 +181,17 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'FinanceOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity Invoices as projection on db.Invoices;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'FinanceOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity PaymentRuns as projection on db.PaymentRuns {
     key ID,

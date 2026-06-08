@@ -17,7 +17,7 @@ const uiApps = [
 
 cds.on("bootstrap", (app) => {
   app.get("/", (_req, res) => {
-    res.redirect("/p2p-ui/index.html");
+    res.redirect("/home/index.html");
   });
 
   uiApps.forEach((appName) => {

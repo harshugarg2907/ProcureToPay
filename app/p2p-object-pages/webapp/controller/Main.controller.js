@@ -295,7 +295,7 @@ sap.ui.define([
         object: object,
         fields: fields,
         canEdit: RoleAccess.canWriteEntity(entity, role),
-        canDelete: role === "Admin",
+        canDelete: role === "P2P_ADMIN",
         actions: this._getActions(entity, role)
       });
       this.byId("objectPage").setTitle(config.label + " Detail");

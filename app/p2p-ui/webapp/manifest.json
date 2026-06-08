@@ -76,7 +76,6 @@
         "controlAggregation": "pages"
       },
       "routes": [
-        { "pattern": "login", "name": "login", "target": "login" },
         { "pattern": "", "name": "launchpad", "target": "launchpad" },
         { "pattern": "profile", "name": "profile", "target": "profile" },
         { "pattern": "pr", "name": "purchaseRequisition", "target": "purchaseRequisition" },
@@ -92,7 +91,6 @@
         { "pattern": "access-denied", "name": "accessDenied", "target": "accessDenied" }
       ],
       "targets": {
-        "login": { "name": "Login", "id": "Login" },
         "launchpad": { "name": "Launchpad", "id": "Launchpad" },
         "profile": { "name": "Profile", "id": "Profile" },
         "purchaseRequisition": { "name": "PurchaseRequisition", "id": "PurchaseRequisition" },

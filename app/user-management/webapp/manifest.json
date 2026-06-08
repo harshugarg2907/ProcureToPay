@@ -4,7 +4,7 @@
     "id": "p2p.usermanagement",
     "type": "application",
     "title": "P2P User Management",
-    "description": "Admin user and role management",
+    "description": "Application user profile management",
     "applicationVersion": {
       "version": "1.0.0"
     }

@@ -45,43 +45,43 @@
           "users": {
             "admin": {
               "password": "admin",
-              "roles": [
-                "Admin",
+            "roles": [
+                "P2P_ADMIN",
                 "authenticated-user"
               ]
             },
             "jsmith": {
               "password": "jsmith",
-              "roles": [
-                "ProcurementOfficer",
+            "roles": [
+                "P2P_BUYER",
                 "authenticated-user"
               ]
             },
             "qinspector": {
               "password": "qinspector",
-              "roles": [
-                "QCInspector",
+            "roles": [
+                "P2P_QUALITY_INSPECTOR",
                 "authenticated-user"
               ]
             },
             "grofficer": {
               "password": "grofficer",
-              "roles": [
-                "GoodsReceiptOfficer",
+            "roles": [
+                "P2P_BUYER",
                 "authenticated-user"
               ]
             },
             "finance": {
               "password": "finance",
-              "roles": [
-                "FinanceOfficer",
+            "roles": [
+                "P2P_FINANCE_MANAGER",
                 "authenticated-user"
               ]
             },
             "viewer": {
               "password": "viewer",
-              "roles": [
-                "Viewer",
+            "roles": [
+                "P2P_REQUESTER",
                 "authenticated-user"
               ]
             }

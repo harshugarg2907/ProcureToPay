@@ -1,84 +1,88 @@
 sap.ui.define([], function () {
   "use strict";
 
-  var ALL_ROLES = [
-    "Admin",
-    "ProcurementOfficer",
-    "FinanceOfficer",
-    "QCInspector",
-    "GoodsReceiptOfficer",
-    "Viewer"
-  ];
+  var ROLES = {
+    ADMIN: "P2P_ADMIN",
+    BUYER: "P2P_BUYER",
+    REQUESTER: "P2P_REQUESTER",
+    VENDOR_MANAGER: "P2P_VENDOR_MANAGER",
+    QUALITY_INSPECTOR: "P2P_QUALITY_INSPECTOR",
+    AP_CLERK: "P2P_AP_CLERK",
+    FINANCE_MANAGER: "P2P_FINANCE_MANAGER"
+  };
+  var ALL_ROLES = Object.keys(ROLES).map(function (key) {
+    return ROLES[key];
+  });
 
   var ROLE_PERMISSIONS = {
     ROUTES: {
       "/home/index.html": ALL_ROLES,
       "/p2p-list-object/index.html": ALL_ROLES,
-      "/procurement-pages/index.html": ["Admin", "ProcurementOfficer"],
+      "/procurement-pages/index.html": [ROLES.ADMIN, ROLES.BUYER, ROLES.REQUESTER],
       "/p2p-object-pages/index.html": ALL_ROLES,
-      "/p2p-transactional/index.html": ["Admin", "FinanceOfficer", "QCInspector", "GoodsReceiptOfficer", "Viewer"],
-      "/p2p-analytical/index.html": ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
-      "/user-management/index.html": ["Admin"],
-      "/user-management/webapp/index.html": ["Admin"]
+      "/p2p-transactional/index.html": [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER],
+      "/p2p-analytical/index.html": [ROLES.ADMIN, ROLES.BUYER, ROLES.FINANCE_MANAGER],
+      "/user-management/index.html": [ROLES.ADMIN],
+      "/user-management/webapp/index.html": [ROLES.ADMIN]
     },
     ENTITIES: {
       Users: {
-        READ: ["Admin"],
-        WRITE: ["Admin"]
+        READ: [ROLES.ADMIN],
+        WRITE: [ROLES.ADMIN]
       },
       Vendors: {
-        READ: ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
-        WRITE: ["Admin"]
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER],
+        WRITE: [ROLES.ADMIN, ROLES.VENDOR_MANAGER]
       },
       Materials: {
-        READ: ["Admin", "ProcurementOfficer", "Viewer"],
-        WRITE: ["Admin"]
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
+        WRITE: [ROLES.ADMIN, ROLES.BUYER]
       },
       PurchaseRequisitions: {
-        READ: ["Admin", "ProcurementOfficer", "Viewer"],
-        WRITE: ["Admin", "ProcurementOfficer"]
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.REQUESTER],
+        WRITE: [ROLES.ADMIN, ROLES.BUYER, ROLES.REQUESTER]
       },
       RFQs: {
-        READ: ["Admin", "ProcurementOfficer", "Viewer"],
-        WRITE: ["Admin", "ProcurementOfficer"]
+        READ: [ROLES.ADMIN, ROLES.BUYER],
+        WRITE: [ROLES.ADMIN, ROLES.BUYER]
       },
       PurchaseOrders: {
-        READ: ["Admin", "ProcurementOfficer", "Viewer"],
-        WRITE: ["Admin", "ProcurementOfficer"]
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER],
+        WRITE: [ROLES.ADMIN, ROLES.BUYER]
       },
       InspectionLots: {
-        READ: ["Admin", "QCInspector", "Viewer"],
-        WRITE: ["Admin", "QCInspector"]
+        READ: [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR, ROLES.BUYER],
+        WRITE: [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR]
       },
       GoodsReceipts: {
-        READ: ["Admin", "GoodsReceiptOfficer", "Viewer"],
-        WRITE: ["Admin", "GoodsReceiptOfficer"]
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.AP_CLERK, ROLES.QUALITY_INSPECTOR],
+        WRITE: [ROLES.ADMIN, ROLES.BUYER]
       },
       Invoices: {
-        READ: ["Admin", "FinanceOfficer", "Viewer"],
-        WRITE: ["Admin", "FinanceOfficer"]
+        READ: [ROLES.ADMIN, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER],
+        WRITE: [ROLES.ADMIN, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER]
       },
       PaymentRuns: {
-        READ: ["Admin", "FinanceOfficer", "Viewer"],
-        WRITE: ["Admin", "FinanceOfficer"]
+        READ: [ROLES.ADMIN, ROLES.AP_CLERK, ROLES.FINANCE_MANAGER],
+        WRITE: [ROLES.ADMIN, ROLES.FINANCE_MANAGER]
       },
       Analytics: {
-        READ: ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
+        READ: [ROLES.ADMIN, ROLES.BUYER, ROLES.FINANCE_MANAGER],
         WRITE: []
       }
     },
     ACTIONS: {
-      submitPurchaseRequisition: ["Admin", "ProcurementOfficer"],
-      approvePurchaseRequisition: ["Admin", "ProcurementOfficer"],
-      createRFQFromPR: ["Admin", "ProcurementOfficer"],
-      issueRFQ: ["Admin", "ProcurementOfficer"],
-      createPOFromRFQ: ["Admin", "ProcurementOfficer"],
-      approvePO: ["Admin", "ProcurementOfficer"],
-      postUsageDecision: ["Admin", "QCInspector"],
-      postGoodsReceipt: ["Admin", "GoodsReceiptOfficer"],
-      runThreeWayMatch: ["Admin", "FinanceOfficer"],
-      createPaymentAdvice: ["Admin", "FinanceOfficer"],
-      executePaymentRun: ["Admin", "FinanceOfficer"]
+      submitPurchaseRequisition: [ROLES.ADMIN, ROLES.REQUESTER, ROLES.BUYER],
+      approvePurchaseRequisition: [ROLES.ADMIN, ROLES.BUYER],
+      createRFQFromPR: [ROLES.ADMIN, ROLES.BUYER],
+      issueRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      createPOFromRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      approvePO: [ROLES.ADMIN, ROLES.BUYER],
+      postUsageDecision: [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR],
+      postGoodsReceipt: [ROLES.ADMIN, ROLES.BUYER],
+      runThreeWayMatch: [ROLES.ADMIN, ROLES.AP_CLERK],
+      createPaymentAdvice: [ROLES.ADMIN, ROLES.AP_CLERK],
+      executePaymentRun: [ROLES.ADMIN, ROLES.FINANCE_MANAGER]
     }
   };
 
@@ -93,8 +97,7 @@ sap.ui.define([], function () {
     { title: "Invoices", description: "Supplier invoice processing", icon: "sap-icon://receipt", entity: "Invoices", path: "/p2p-list-object/index.html?entity=Invoices" },
     { title: "Payment Runs", description: "Payment execution", icon: "sap-icon://payment-approval", entity: "PaymentRuns", path: "/p2p-list-object/index.html?entity=PaymentRuns" },
     { title: "Total Spend Analytics", description: "Vendor Spend, PO Spend & Procurement Insights", icon: "sap-icon://money-bills", entity: "Analytics", path: "/p2p-analytical/index.html" },
-    { title: "Vendor Spend Analytics", description: "Spend grouped by vendor", icon: "sap-icon://bar-chart", entity: "Analytics", path: "/p2p-analytical/index.html" },
-    { title: "User Management", description: "Users, roles and access control", icon: "sap-icon://group", entity: "Users", path: "/user-management/index.html" }
+    { title: "User Management", description: "User profiles; roles are assigned in BTP", icon: "sap-icon://group", entity: "Users", path: "/user-management/index.html" }
   ];
 
   function includes(roles, role) {
@@ -102,6 +105,7 @@ sap.ui.define([], function () {
   }
 
   return {
+    ROLES: ROLES,
     ALL_ROLES: ALL_ROLES,
     ROUTE_PERMISSIONS: ROLE_PERMISSIONS.ROUTES,
     ENTITY_PERMISSIONS: ROLE_PERMISSIONS.ENTITIES,
@@ -154,7 +158,7 @@ sap.ui.define([], function () {
 
     getHomeTiles: function (role) {
       return HOME_TILES.filter(function (tile) {
-        return role === "Admin" || this.canReadEntity(tile.entity, role);
+        return role === ROLES.ADMIN || this.canReadEntity(tile.entity, role);
       }, this);
     }
   };

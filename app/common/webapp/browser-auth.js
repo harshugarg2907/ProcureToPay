@@ -5,10 +5,10 @@
   var LOGOUT_PATH = "/logout";
   var STORAGE_KEYS = ["loggedInUser", "userRole", "userFullName", "userEmail", "companyCode", "costCenter"];
   var ROUTE_PERMISSIONS = {
-    "/dashboard/index.html": ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
-    "/procurement-pages/index.html": ["Admin", "ProcurementOfficer"],
-    "/user-management/index.html": ["Admin"],
-    "/user-management/webapp/index.html": ["Admin"]
+    "/dashboard/index.html": ["P2P_ADMIN", "P2P_BUYER", "P2P_FINANCE_MANAGER"],
+    "/procurement-pages/index.html": ["P2P_ADMIN", "P2P_BUYER", "P2P_REQUESTER"],
+    "/user-management/index.html": ["P2P_ADMIN"],
+    "/user-management/webapp/index.html": ["P2P_ADMIN"]
   };
 
   function session() {

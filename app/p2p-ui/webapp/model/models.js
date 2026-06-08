@@ -5,21 +5,23 @@ sap.ui.define([
   "use strict";
 
   const roleRoutes = {
-    Admin: ['launchpad','profile','purchaseRequisition','rfq','vendors','materials','purchaseOrders','qualityInspection','goodsReceipt','invoice','paymentRun','analytics'],
-    ProcurementOfficer: ['launchpad','profile','purchaseRequisition','rfq','vendors','materials','purchaseOrders','analytics'],
-    QCInspector: ['launchpad','profile','qualityInspection','analytics'],
-    GoodsReceiptOfficer: ['launchpad','profile','goodsReceipt','analytics'],
-    FinanceOfficer: ['launchpad','profile','invoice','paymentRun','analytics'],
-    Viewer: ['launchpad','profile','analytics']
+    P2P_ADMIN: ['launchpad','profile','purchaseRequisition','rfq','vendors','materials','purchaseOrders','qualityInspection','goodsReceipt','invoice','paymentRun','analytics'],
+    P2P_BUYER: ['launchpad','profile','purchaseRequisition','rfq','vendors','materials','purchaseOrders','goodsReceipt','analytics'],
+    P2P_REQUESTER: ['launchpad','profile','purchaseRequisition'],
+    P2P_VENDOR_MANAGER: ['launchpad','profile','vendors','materials'],
+    P2P_QUALITY_INSPECTOR: ['launchpad','profile','qualityInspection','analytics'],
+    P2P_AP_CLERK: ['launchpad','profile','invoice','paymentRun'],
+    P2P_FINANCE_MANAGER: ['launchpad','profile','invoice','paymentRun','analytics']
   };
 
   const users = {
-    admin: { userId: 'admin', fullName: 'System Administrator', email: 'admin@p2p.example', companyCode: '1000', costCenter: 'CC100', language: 'EN', status: 'Active', roles: ['Admin'] },
-    jsmith: { userId: 'jsmith', fullName: 'John Smith', email: 'jsmith@p2p.example', companyCode: '1000', costCenter: 'CC200', language: 'EN', status: 'Active', roles: ['ProcurementOfficer'] },
-    qinspector: { userId: 'qinspector', fullName: 'Quality Inspector', email: 'qinspector@p2p.example', companyCode: '1000', costCenter: 'CC300', language: 'EN', status: 'Active', roles: ['QCInspector'] },
-    grofficer: { userId: 'grofficer', fullName: 'Goods Receipt Officer', email: 'grofficer@p2p.example', companyCode: '1000', costCenter: 'CC400', language: 'EN', status: 'Active', roles: ['GoodsReceiptOfficer'] },
-    finance: { userId: 'finance', fullName: 'Finance Officer', email: 'finance@p2p.example', companyCode: '1000', costCenter: 'CC500', language: 'EN', status: 'Active', roles: ['FinanceOfficer'] },
-    viewer: { userId: 'viewer', fullName: 'Read Only User', email: 'viewer@p2p.example', companyCode: '1000', costCenter: 'CC900', language: 'EN', status: 'Active', roles: ['Viewer'] }
+    admin: { userId: 'admin', fullName: 'System Administrator', email: 'admin@p2p.example', companyCode: '1000', costCenter: 'CC100', language: 'EN', status: 'Active', roles: ['P2P_ADMIN'] },
+    jsmith: { userId: 'jsmith', fullName: 'John Smith', email: 'jsmith@p2p.example', companyCode: '1000', costCenter: 'CC200', language: 'EN', status: 'Active', roles: ['P2P_BUYER'] },
+    requester: { userId: 'requester', fullName: 'Purchase Requester', email: 'requester@p2p.example', companyCode: '1000', costCenter: 'CC250', language: 'EN', status: 'Active', roles: ['P2P_REQUESTER'] },
+    vendormgr: { userId: 'vendormgr', fullName: 'Vendor Manager', email: 'vendormgr@p2p.example', companyCode: '1000', costCenter: 'CC260', language: 'EN', status: 'Active', roles: ['P2P_VENDOR_MANAGER'] },
+    qinspector: { userId: 'qinspector', fullName: 'Quality Inspector', email: 'qinspector@p2p.example', companyCode: '1000', costCenter: 'CC300', language: 'EN', status: 'Active', roles: ['P2P_QUALITY_INSPECTOR'] },
+    apclerk: { userId: 'apclerk', fullName: 'AP Clerk', email: 'apclerk@p2p.example', companyCode: '1000', costCenter: 'CC450', language: 'EN', status: 'Active', roles: ['P2P_AP_CLERK'] },
+    finance: { userId: 'finance', fullName: 'Finance Manager', email: 'finance@p2p.example', companyCode: '1000', costCenter: 'CC500', language: 'EN', status: 'Active', roles: ['P2P_FINANCE_MANAGER'] }
   };
 
   return {
@@ -29,21 +31,17 @@ sap.ui.define([
 
     createSession: function () {
       return {
-        currentUser: users.viewer,
-        canMock: new URLSearchParams(window.location.search).get('mock') === 'true',
-        login: {
-          userId: 'viewer',
-          password: ''
-        }
+        currentUser: users.admin,
+        canMock: new URLSearchParams(window.location.search).get('mock') === 'true'
       };
     },
 
     getUserDefinition: function (userId) {
-      return users[userId] || users.viewer;
+      return users[userId] || users.admin;
     },
 
     isRouteAllowed: function (routeName, roles) {
-      if (!routeName || routeName === 'login' || routeName === 'accessDenied') {
+      if (!routeName || routeName === 'accessDenied') {
         return true;
       }
       if (!roles || !roles.length) {

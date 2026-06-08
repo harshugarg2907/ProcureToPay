@@ -19,12 +19,13 @@ const GENERATED_BUSINESS_IDS = new Map([
   ['PaymentRuns', ['paymentRunId', 'PAY']]
 ]);
 const BTP_ROLES = [
-  'Admin',
-  'ProcurementOfficer',
-  'QCInspector',
-  'GoodsReceiptOfficer',
-  'FinanceOfficer',
-  'Viewer'
+  'P2P_ADMIN',
+  'P2P_BUYER',
+  'P2P_REQUESTER',
+  'P2P_VENDOR_MANAGER',
+  'P2P_QUALITY_INSPECTOR',
+  'P2P_AP_CLERK',
+  'P2P_FINANCE_MANAGER'
 ];
 
 module.exports = cds.service.impl(async function () {
