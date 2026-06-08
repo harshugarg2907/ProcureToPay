@@ -1,0 +1,97 @@
+<mvc:View
+  controllerName="p2p.usermanagement.controller.UserManagement"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m">
+  <App>
+    <Page id="userManagementPage" title="User Management" enableScrolling="true">
+      <content>
+        <VBox class="p2pContent sapUiResponsiveContentPadding" renderType="Bare">
+          <Panel class="sapUiMediumMarginBottom" backgroundDesign="Solid">
+            <content>
+              <VBox renderType="Bare">
+                <Title text="Admin Access Control" level="H2" />
+                <Text text="Create and maintain application user profiles. Role collections are assigned in SAP BTP cockpit." class="sapUiTinyMarginTop" />
+              </VBox>
+            </content>
+          </Panel>
+
+          <Panel headerText="Users" class="sapUiMediumMarginBottom" backgroundDesign="Solid" visible="{= ${admin>/mode} === 'list' }">
+            <headerToolbar>
+              <Toolbar>
+                <Title text="Users" level="H3" />
+                <ToolbarSpacer />
+                <Button text="Refresh" icon="sap-icon://refresh" press=".onRefresh" />
+                <Button text="New User" icon="sap-icon://add-employee" type="Emphasized" press=".onAddUser" />
+                <Button text="Edit" icon="sap-icon://edit" enabled="{admin>/canMutateSelectedUser}" press=".onEditUser" />
+                <Button text="Delete" icon="sap-icon://delete" type="Reject" enabled="{admin>/canMutateSelectedUser}" press=".onDeleteUser" />
+              </Toolbar>
+            </headerToolbar>
+            <content>
+              <Table
+                id="usersTable"
+                mode="SingleSelectMaster"
+                growing="true"
+                growingThreshold="25"
+                selectionChange=".onUserSelectionChange"
+                items="{admin>/users}">
+                <columns>
+                  <Column><Text text="User ID" /></Column>
+                  <Column><Text text="Full Name" /></Column>
+                  <Column demandPopin="true" minScreenWidth="Tablet"><Text text="Email" /></Column>
+                  <Column demandPopin="true" minScreenWidth="Tablet"><Text text="Company" /></Column>
+                  <Column demandPopin="true" minScreenWidth="Desktop"><Text text="Cost Center" /></Column>
+                  <Column><Text text="Status" /></Column>
+                </columns>
+                <items>
+                  <ColumnListItem type="Navigation" press=".onUserRowPress">
+                    <cells>
+                      <ObjectIdentifier title="{admin>userId}" text="{= ${admin>protected} ? 'Protected' : '' }" />
+                      <Text text="{admin>fullName}" />
+                      <Text text="{admin>email}" />
+                      <Text text="{admin>companyCode}" />
+                      <Text text="{admin>costCenter}" />
+                      <ObjectStatus text="{admin>status}" state="{= ${admin>status} === 'Active' ? 'Success' : 'Warning' }" />
+                    </cells>
+                  </ColumnListItem>
+                </items>
+              </Table>
+            </content>
+          </Panel>
+
+          <Panel class="sapUiMediumMarginBottom" backgroundDesign="Solid" visible="{= ${admin>/mode} === 'object' }">
+            <headerToolbar>
+              <Toolbar>
+                <Button icon="sap-icon://nav-back" text="User List" press=".onBackToList" />
+                <ToolbarSpacer />
+                <Button text="Edit User" icon="sap-icon://edit" enabled="{admin>/canMutateSelectedUser}" press=".onEditUser" />
+                <Button text="Delete User" icon="sap-icon://delete" type="Reject" enabled="{admin>/canMutateSelectedUser}" press=".onDeleteUser" />
+              </Toolbar>
+            </headerToolbar>
+            <content>
+              <VBox class="sapUiSmallMargin" renderType="Bare">
+                <ObjectHeader
+                  title="{admin>/selectedUser/fullName}"
+                  intro="{admin>/selectedUser/userId}"
+                  icon="sap-icon://employee"
+                  responsive="true">
+                  <attributes>
+                    <ObjectAttribute title="Email" text="{admin>/selectedUser/email}" />
+                    <ObjectAttribute title="Company Code" text="{admin>/selectedUser/companyCode}" />
+                    <ObjectAttribute title="Cost Center" text="{admin>/selectedUser/costCenter}" />
+                    <ObjectAttribute title="Language" text="{admin>/selectedUser/language}" />
+                    <ObjectAttribute title="Role Source" text="Managed in SAP BTP cockpit" />
+                  </attributes>
+                  <statuses>
+                    <ObjectStatus title="Status" text="{admin>/selectedUser/status}" state="{= ${admin>/selectedUser/status} === 'Active' ? 'Success' : 'Warning' }" />
+                    <ObjectStatus title="Protection" text="{= ${admin>/selectedUser/protected} ? 'Admin protected' : 'Editable' }" state="{= ${admin>/selectedUser/protected} ? 'Information' : 'Success' }" />
+                  </statuses>
+                </ObjectHeader>
+              </VBox>
+            </content>
+          </Panel>
+
+        </VBox>
+      </content>
+    </Page>
+  </App>
+</mvc:View>

@@ -1,0 +1,13 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+  <Dialog id="confirmActionDialog" title="Confirm Action">
+    <content>
+      <Text text="Are you sure you want to continue?" />
+    </content>
+    <beginButton>
+      <Button text="Yes" press=".onConfirmAction" type="Emphasized" />
+    </beginButton>
+    <endButton>
+      <Button text="No" press=".onCloseDialog" />
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

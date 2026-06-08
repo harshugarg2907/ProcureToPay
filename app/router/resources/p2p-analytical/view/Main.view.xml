@@ -1,0 +1,206 @@
+<mvc:View
+  controllerName="sap.cap.p2p.analytical.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f"
+  xmlns:card="sap.f.cards"
+  xmlns:viz="sap.viz.ui5.controls"
+  xmlns:viz.data="sap.viz.ui5.data"
+  xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
+  <App>
+    <pages>
+      <Page id="mainPage" title="Total Spend Analytics" enableScrolling="true">
+        <content>
+          <VBox class="p2pAnalyticsPage sapUiResponsiveContentPadding" renderType="Bare">
+            <VBox renderType="Bare" class="p2pAnalyticsHero">
+              <Text text="Executive Procurement Dashboard" class="p2pAnalyticsEyebrow" />
+              <Title text="Total Spend Analytics" level="H1" />
+              <Text text="Vendor spend, purchase order performance, and procurement insights from live P2P data." />
+            </VBox>
+
+            <Title text="KPI Overview" level="H2" class="p2pSectionTitle" />
+            <FlexBox wrap="Wrap" renderType="Bare" items="{analytics>/kpis}" class="p2pAnalyticsKpiGrid">
+              <GenericTile
+                class="p2pAnalyticsKpiTile"
+                header="{analytics>title}"
+                subheader="{analytics>subtitle}"
+                frameType="TwoByOne"
+                press=".onKpiPress">
+                <tileContent>
+                  <TileContent>
+                    <content>
+                      <NumericContent value="{analytics>value}" icon="{analytics>icon}" withMargin="false" />
+                    </content>
+                  </TileContent>
+                </tileContent>
+              </GenericTile>
+            </FlexBox>
+
+            <Title text="Procurement Spend Dashboard" level="H2" class="p2pSectionTitle" />
+            <FlexBox wrap="Wrap" renderType="Bare" class="p2pAnalyticsCardGrid">
+              <f:Card class="p2pAnalyticsCard p2pChartCard">
+                <f:header>
+                  <card:Header title="Vendor vs Total Spend" subtitle="Bar chart by vendor" iconSrc="sap-icon://bar-chart" />
+                </f:header>
+                <f:content>
+                  <viz:VizFrame id="vendorSpendBar" width="100%" height="22rem" vizType="bar" selectData=".onVendorChartSelect">
+                    <viz:dataset>
+                      <viz.data:FlattenedDataset data="{analytics>/vendorSpend}">
+                        <viz.data:dimensions>
+                          <viz.data:DimensionDefinition name="Vendor" value="{analytics>vendorName}" />
+                        </viz.data:dimensions>
+                        <viz.data:measures>
+                          <viz.data:MeasureDefinition name="Total Spend" value="{analytics>totalSpend}" />
+                        </viz.data:measures>
+                      </viz.data:FlattenedDataset>
+                    </viz:dataset>
+                    <viz:feeds>
+                      <viz.feeds:FeedItem uid="valueAxis" type="Measure" values="Total Spend" />
+                      <viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Vendor" />
+                    </viz:feeds>
+                  </viz:VizFrame>
+                </f:content>
+              </f:Card>
+
+              <f:Card class="p2pAnalyticsCard p2pChartCard">
+                <f:header>
+                  <card:Header title="Spend Distribution by Vendor" subtitle="Share of total procurement spend" iconSrc="sap-icon://pie-chart" />
+                </f:header>
+                <f:content>
+                  <viz:VizFrame id="vendorSpendDonut" width="100%" height="22rem" vizType="donut" selectData=".onVendorChartSelect">
+                    <viz:dataset>
+                      <viz.data:FlattenedDataset data="{analytics>/vendorSpend}">
+                        <viz.data:dimensions>
+                          <viz.data:DimensionDefinition name="Vendor" value="{analytics>vendorName}" />
+                        </viz.data:dimensions>
+                        <viz.data:measures>
+                          <viz.data:MeasureDefinition name="Total Spend" value="{analytics>totalSpend}" />
+                        </viz.data:measures>
+                      </viz.data:FlattenedDataset>
+                    </viz:dataset>
+                    <viz:feeds>
+                      <viz.feeds:FeedItem uid="size" type="Measure" values="Total Spend" />
+                      <viz.feeds:FeedItem uid="color" type="Dimension" values="Vendor" />
+                    </viz:feeds>
+                  </viz:VizFrame>
+                </f:content>
+              </f:Card>
+
+              <f:Card class="p2pAnalyticsCard p2pTableCard">
+                <f:header>
+                  <card:Header title="Vendor Spend Details" subtitle="Click a vendor to review related purchase orders" iconSrc="sap-icon://table-view" />
+                </f:header>
+                <f:content>
+                  <Table growing="true" items="{analytics>/vendorSpend}">
+                    <columns>
+                      <Column><Text text="Vendor" /></Column>
+                      <Column hAlign="End"><Text text="Total Spend" /></Column>
+                    </columns>
+                    <items>
+                      <ColumnListItem type="Navigation" press=".onVendorSpendPress">
+                        <cells>
+                          <Text text="{analytics>vendorName}" />
+                          <ObjectNumber number="{analytics>totalSpend}" unit="INR" />
+                        </cells>
+                      </ColumnListItem>
+                    </items>
+                  </Table>
+                </f:content>
+              </f:Card>
+            </FlexBox>
+
+            <Title text="Purchase Order Status Dashboard" level="H2" class="p2pSectionTitle" />
+            <FlexBox wrap="Wrap" renderType="Bare" class="p2pAnalyticsCardGrid">
+              <f:Card class="p2pAnalyticsCard p2pChartCard">
+                <f:header>
+                  <card:Header title="Status vs Count" subtitle="Purchase orders by lifecycle status" iconSrc="sap-icon://horizontal-bar-chart" />
+                </f:header>
+                <f:content>
+                  <viz:VizFrame id="poStatusBar" width="100%" height="22rem" vizType="column" selectData=".onStatusChartSelect">
+                    <viz:dataset>
+                      <viz.data:FlattenedDataset data="{analytics>/poStatus}">
+                        <viz.data:dimensions>
+                          <viz.data:DimensionDefinition name="Status" value="{analytics>status}" />
+                        </viz.data:dimensions>
+                        <viz.data:measures>
+                          <viz.data:MeasureDefinition name="Total" value="{analytics>total}" />
+                        </viz.data:measures>
+                      </viz.data:FlattenedDataset>
+                    </viz:dataset>
+                    <viz:feeds>
+                      <viz.feeds:FeedItem uid="valueAxis" type="Measure" values="Total" />
+                      <viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Status" />
+                    </viz:feeds>
+                  </viz:VizFrame>
+                </f:content>
+              </f:Card>
+
+              <f:Card class="p2pAnalyticsCard p2pChartCard">
+                <f:header>
+                  <card:Header title="Status Distribution" subtitle="PO volume share by status" iconSrc="sap-icon://donut-chart" />
+                </f:header>
+                <f:content>
+                  <viz:VizFrame id="poStatusDonut" width="100%" height="22rem" vizType="donut" selectData=".onStatusChartSelect">
+                    <viz:dataset>
+                      <viz.data:FlattenedDataset data="{analytics>/poStatus}">
+                        <viz.data:dimensions>
+                          <viz.data:DimensionDefinition name="Status" value="{analytics>status}" />
+                        </viz.data:dimensions>
+                        <viz.data:measures>
+                          <viz.data:MeasureDefinition name="Total" value="{analytics>total}" />
+                        </viz.data:measures>
+                      </viz.data:FlattenedDataset>
+                    </viz:dataset>
+                    <viz:feeds>
+                      <viz.feeds:FeedItem uid="size" type="Measure" values="Total" />
+                      <viz.feeds:FeedItem uid="color" type="Dimension" values="Status" />
+                    </viz:feeds>
+                  </viz:VizFrame>
+                </f:content>
+              </f:Card>
+
+              <f:Card class="p2pAnalyticsCard p2pTableCard">
+                <f:header>
+                  <card:Header title="PO Status Details" subtitle="Click a status to open matching purchase orders" iconSrc="sap-icon://status-completed" />
+                </f:header>
+                <f:content>
+                  <Table growing="true" items="{analytics>/poStatus}">
+                    <columns>
+                      <Column><Text text="Status" /></Column>
+                      <Column hAlign="End"><Text text="Total" /></Column>
+                    </columns>
+                    <items>
+                      <ColumnListItem type="Navigation" press=".onPOStatusPress">
+                        <cells>
+                          <ObjectStatus text="{analytics>status}" />
+                          <ObjectNumber number="{analytics>total}" />
+                        </cells>
+                      </ColumnListItem>
+                    </items>
+                  </Table>
+                </f:content>
+              </f:Card>
+            </FlexBox>
+
+            <Title text="Business Insights" level="H2" class="p2pSectionTitle" />
+            <FlexBox wrap="Wrap" renderType="Bare" items="{analytics>/insights}" class="p2pAnalyticsInsightGrid">
+              <GenericTile
+                class="p2pAnalyticsInsightTile"
+                header="{analytics>title}"
+                subheader="{analytics>subtitle}"
+                frameType="TwoByOne">
+                <tileContent>
+                  <TileContent>
+                    <content>
+                      <NumericContent value="{analytics>value}" icon="{analytics>icon}" withMargin="false" />
+                    </content>
+                  </TileContent>
+                </tileContent>
+              </GenericTile>
+            </FlexBox>
+          </VBox>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>

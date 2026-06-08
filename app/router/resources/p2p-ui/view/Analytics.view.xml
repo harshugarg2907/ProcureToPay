@@ -1,0 +1,39 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Analytics">
+  <Page title="Analytics Overview" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Panel headerText="Procurement KPIs" class="sapUiSmallMarginBottom">
+        <FlexBox width="100%" wrap="Wrap" renderType="Bare" gap="1rem">
+          <GenericTile header="Purchase Orders" subheader="Overview" press=".onNavigateToPO">
+            <TileContent>
+              <NumericContent value="8" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Invoices" subheader="Pending" press=".onNavigateToInvoice">
+            <TileContent>
+              <NumericContent value="4" indicator="Down" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Payments" subheader="Awaiting" press=".onNavigateToPayment">
+            <TileContent>
+              <NumericContent value="2" indicator="None" />
+            </TileContent>
+          </GenericTile>
+        </FlexBox>
+      </Panel>
+      <Panel headerText="PO Status Analytics" expandable="true" expanded="true">
+        <List items="{/POStatusAnalytics}">
+          <items>
+            <StandardListItem title="{status}" description="{total} orders" />
+          </items>
+        </List>
+      </Panel>
+      <Panel headerText="Invoice Match Status" expandable="true">
+        <List items="{/InvoiceMatchAnalytics}">
+          <items>
+            <StandardListItem title="{matchStatus}" description="{total} invoices" />
+          </items>
+        </List>
+      </Panel>
+    </content>
+  </Page>
+</mvc:View>

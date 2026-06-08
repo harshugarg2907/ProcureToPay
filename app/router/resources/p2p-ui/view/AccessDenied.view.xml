@@ -1,0 +1,12 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.AccessDenied">
+  <Page title="Access Denied" class="sapUiResponsivePadding">
+    <content>
+      <VBox class="sapUiSmallMarginTop" alignItems="Center" justifyContent="Center">
+        <Icon src="sap-icon://locked" size="4rem" />
+        <Title text="Access Denied" level="H2" />
+        <Text text="You do not have permission to view this section." />
+        <Button text="Back to Launchpad" press=".onBackToLaunchpad" type="Emphasized" class="sapUiMediumMarginTop" />
+      </VBox>
+    </content>
+  </Page>
+</mvc:View>

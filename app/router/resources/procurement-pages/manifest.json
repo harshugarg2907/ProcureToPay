@@ -1,0 +1,189 @@
+{
+  "_version": "2.0.0",
+  "sap.app": {
+    "id": "sap.cap.p2p.procurement",
+    "type": "application",
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/p2p/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "4.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.136.0",
+      "libs": {
+        "sap.fe.core": {},
+        "sap.fe.templates": {},
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "models": {
+      "": {
+        "dataSource": "mainService",
+        "preload": false,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true
+        }
+      },
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.cap.p2p.procurement.i18n.i18n"
+        }
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router"
+      },
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "PurchaseRequisitionsList",
+          "target": "PurchaseRequisitionsList"
+        },
+        {
+          "pattern": "PurchaseRequisitions:?query:",
+          "name": "PurchaseRequisitions",
+          "target": "PurchaseRequisitionsList"
+        },
+        {
+          "pattern": "RFQs:?query:",
+          "name": "RFQs",
+          "target": "RFQsList"
+        },
+        {
+          "pattern": "PurchaseOrders:?query:",
+          "name": "PurchaseOrders",
+          "target": "PurchaseOrdersList"
+        },
+        {
+          "pattern": "PurchaseRequisitions({key}):?query:",
+          "name": "PurchaseRequisitionsObjectPage",
+          "target": "PurchaseRequisitionsObjectPage"
+        },
+        {
+          "pattern": "RFQs({key}):?query:",
+          "name": "RFQsObjectPage",
+          "target": "RFQsObjectPage"
+        },
+        {
+          "pattern": "PurchaseOrders({key}):?query:",
+          "name": "PurchaseOrdersObjectPage",
+          "target": "PurchaseOrdersObjectPage"
+        }
+      ],
+      "targets": {
+        "PurchaseRequisitionsList": {
+          "type": "Component",
+          "id": "PurchaseRequisitionsList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "entitySet": "PurchaseRequisitions",
+              "liveMode": true,
+              "navigation": {
+                "PurchaseRequisitions": {
+                  "detail": {
+                    "route": "PurchaseRequisitionsObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "RFQsList": {
+          "type": "Component",
+          "id": "RFQsList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "entitySet": "RFQs",
+              "liveMode": true,
+              "navigation": {
+                "RFQs": {
+                  "detail": {
+                    "route": "RFQsObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PurchaseOrdersList": {
+          "type": "Component",
+          "id": "PurchaseOrdersList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "entitySet": "PurchaseOrders",
+              "liveMode": true,
+              "navigation": {
+                "PurchaseOrders": {
+                  "detail": {
+                    "route": "PurchaseOrdersObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PurchaseRequisitionsObjectPage": {
+          "type": "Component",
+          "id": "PurchaseRequisitionsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "entitySet": "PurchaseRequisitions"
+            }
+          }
+        },
+        "RFQsObjectPage": {
+          "type": "Component",
+          "id": "RFQsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "entitySet": "RFQs"
+            }
+          }
+        },
+        "PurchaseOrdersObjectPage": {
+          "type": "Component",
+          "id": "PurchaseOrdersObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "entitySet": "PurchaseOrders"
+            }
+          }
+        }
+      }
+    }
+  }
+}

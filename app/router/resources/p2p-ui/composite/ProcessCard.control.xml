@@ -1,0 +1,21 @@
+<core:CompositeControl xmlns:core="sap.ui.core" xmlns:m="sap.m" xmlns="sap.ui.core" xmlns:layout="sap.ui.layout" displayBlock="true">
+  <metadata>
+    <property name="title" type="string" defaultValue=""/>
+    <property name="subtitle" type="string" defaultValue=""/>
+    <property name="transactionCode" type="string" defaultValue=""/>
+    <property name="module" type="string" defaultValue=""/>
+    <property name="status" type="string" defaultValue=""/>
+    <property name="icon" type="string" defaultValue="sap-icon://business-objects-experience"/>
+    <property name="count" type="int" defaultValue="0"/>
+  </metadata>
+  <content>
+    <m.Panel headerText="{title}" width="300px" height="180px" class="sapUiSmallMargin">
+      <m.VBox fitContainer="true" class="sapUiSmallMargin">
+        <m.ObjectIdentifier title="{subtitle}" text="{transactionCode}" />
+        <m.ObjectAttribute text="{module}" />
+        <m.ObjectStatus text="{status}" />
+        <m.Text text="{= ${count} ? 'Items: ' + ${count} : '' }" />
+      </m.VBox>
+    </m.Panel>
+  </content>
+</core:CompositeControl>

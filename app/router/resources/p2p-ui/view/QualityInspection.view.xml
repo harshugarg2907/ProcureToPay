@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.QualityInspection">
+  <Page title="Quality Inspection" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/InspectionLots}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Inspection Lots" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="Lot No." /></Column>
+          <Column><Text text="Material" /></Column>
+          <Column><Text text="Status" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{inspectionLotNo}" />
+              <Text text="{material/materialNo}" />
+              <Text text="{status}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

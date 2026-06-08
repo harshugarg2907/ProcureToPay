@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.Invoice">
+  <Page title="Invoice Verification" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/Invoices}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Invoice Verification" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="Invoice No." /></Column>
+          <Column><Text text="Vendor" /></Column>
+          <Column><Text text="Status" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{invoiceNo}" />
+              <Text text="{vendor/name}" />
+              <Text text="{status}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

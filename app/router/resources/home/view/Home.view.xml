@@ -1,0 +1,41 @@
+<mvc:View
+  controllerName="p2p.home.controller.Home"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f">
+  <App>
+    <Page id="homePage" enableScrolling="true">
+      <content>
+        <VBox class="p2pHomeContent sapUiResponsiveContentPadding sapUiMediumMarginTop" renderType="Bare">
+          <Panel backgroundDesign="Solid" class="sapUiMediumMarginBottom">
+            <content>
+              <VBox renderType="Bare">
+                <Title text="{home>/welcomeText}" level="H2" />
+                <ObjectStatus title="Role" text="{home>/role}" class="sapUiTinyMarginTop" />
+                <Text text="{home>/emailText}" class="sapUiTinyMarginTop" />
+                <Text text="{home>/companyText}" class="sapUiTinyMarginTop" />
+                <Text text="{home>/costCenterText}" class="sapUiTinyMarginTop" />
+              </VBox>
+            </content>
+          </Panel>
+          <FlexBox id="homeTileGrid" class="p2pHomeTileGrid" wrap="Wrap" renderType="Bare" items="{home>/tiles}">
+            <GenericTile
+              class="p2pHomeTile"
+              header="{home>title}"
+              subheader="{home>description}"
+              frameType="TwoByOne"
+              press=".onTilePress">
+              <tileContent>
+                <TileContent>
+                  <content>
+                    <NumericContent value="{home>count}" scale="{home>countScale}" icon="{home>icon}" withMargin="false" />
+                  </content>
+                </TileContent>
+              </tileContent>
+            </GenericTile>
+          </FlexBox>
+        </VBox>
+      </content>
+    </Page>
+  </App>
+</mvc:View>
