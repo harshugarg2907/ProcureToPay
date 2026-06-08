@@ -53,11 +53,91 @@ module.exports = cds.service.impl(async function () {
     PaymentRunItems
   } = cds.entities('sap.cap.p2p');
 
-  const getBtpRoles = (req) => BTP_ROLES.filter((role) => req.user && req.user.is(role));
+  const getBtpRoles = (req) => {
+    const detectedRoles = new Set();
+    const btpDebug = {
+      id: req.user && req.user.id,
+      attr: req.user && req.user.attr,
+      roleChecks: {},
+      rawRoles: [],
+      detectedRoles: []
+    };
+
+    console.log("=== BTP USER DEBUG ===");
+    console.log("ID:", req.user && req.user.id);
+    console.log("ATTR:", req.user && req.user.attr);
+    console.log("ROLES:", (req.user && req.user._roles) || (req.user && req.user.roles));
+
+    try {
+      const safeUser = {};
+      if (req.user) {
+        for (const key in req.user) {
+          if (key !== 'req' && key !== 'res' && key !== 'tenantInfo' && key !== 'tokenInfo' && typeof req.user[key] !== 'function') {
+            safeUser[key] = req.user[key];
+          }
+        }
+      }
+      console.log("USER OBJECT:", JSON.stringify(safeUser, null, 2));
+    } catch (e) {
+      console.log("USER OBJECT: [Could not stringify]");
+    }
+
+    // Priority 1: req.user.is(role)
+    BTP_ROLES.forEach((role) => {
+      const hasRole = req.user && typeof req.user.is === 'function' && req.user.is(role);
+      btpDebug.roleChecks[role] = hasRole;
+      if (hasRole) detectedRoles.add(role);
+    });
+
+    // Collect all possible raw roles/scopes
+    if (req.user) {
+      // Priority 2: req.user._roles
+      if (Array.isArray(req.user._roles)) btpDebug.rawRoles.push(...req.user._roles);
+      else if (req.user._roles && typeof req.user._roles === 'object') btpDebug.rawRoles.push(...Object.keys(req.user._roles));
+
+      // Priority 3: req.user.roles
+      if (Array.isArray(req.user.roles)) btpDebug.rawRoles.push(...req.user.roles);
+      else if (req.user.roles && typeof req.user.roles === 'object') btpDebug.rawRoles.push(...Object.keys(req.user.roles));
+
+      // Priority 4: req.user.attr scopes
+      if (req.user.attr) {
+        if (Array.isArray(req.user.attr.scope)) btpDebug.rawRoles.push(...req.user.attr.scope);
+        else if (typeof req.user.attr.scope === 'string') btpDebug.rawRoles.push(req.user.attr.scope);
+
+        if (Array.isArray(req.user.attr.scopes)) btpDebug.rawRoles.push(...req.user.attr.scopes);
+      }
+
+      // Priority 5: JWT payload scopes
+      if (req.user.tokenInfo && typeof req.user.tokenInfo.getPayload === 'function') {
+         const payload = req.user.tokenInfo.getPayload();
+         if (payload && Array.isArray(payload.scope)) {
+           btpDebug.rawRoles.push(...payload.scope);
+         }
+      }
+    }
+
+    // Detect roles from collected scopes (e.g. sap-cap-p2p-dev.P2P_ADMIN)
+    btpDebug.rawRoles.forEach((rawRole) => {
+      BTP_ROLES.forEach((role) => {
+        if (rawRole === role || rawRole.endsWith(`.${role}`)) {
+          detectedRoles.add(role);
+        }
+      });
+    });
+
+    btpDebug.detectedRoles = Array.from(detectedRoles);
+
+    if (detectedRoles.size === 0) {
+      console.warn("=== NO ROLES DETECTED FOR USER ===");
+      console.warn("Available Auth Info:", JSON.stringify(btpDebug, null, 2));
+    }
+
+    return { roles: Array.from(detectedRoles), btpDebug };
+  };
 
   const getCurrentUserContext = async (req, requestedUserId) => {
     const userId = requestedUserId || req.user.id || 'anonymous';
-    const roles = getBtpRoles(req);
+    const { roles, btpDebug } = getBtpRoles(req);
     const user = await SELECT.one.from(Users).where({ userId });
     const attr = req.user && req.user.attr || {};
 
@@ -74,7 +154,8 @@ module.exports = cds.service.impl(async function () {
         roleName,
         module: 'BTP',
         status: 'Active'
-      }))
+      })),
+      btpDebug
     };
   };
 
@@ -152,7 +233,9 @@ module.exports = cds.service.impl(async function () {
 
   this.on('getCurrentUser', async (req) => {
     const user = await getCurrentUserContext(req);
-    if (!user.roles.length) return req.error(403, 'No BTP role collection is assigned to this user.');
+    if (!user.roles.length) {
+      console.warn('getCurrentUser called but user has no BTP roles. Returning diagnostic information.');
+    }
     return user;
   });
 
