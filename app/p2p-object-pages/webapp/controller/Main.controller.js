@@ -10,15 +10,16 @@ sap.ui.define([
   "sap/m/VBox",
   "p2p/common/Auth",
   "p2p/common/Header",
-  "p2p/common/RoleAccess"
-], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, VBox, Auth, Header, RoleAccess) {
+  "p2p/common/RoleAccess",
+  "p2p/common/Navigation"
+], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, VBox, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   var ENTITY_CONFIG = {
     Users: {
       label: "User",
       titleField: "userId",
-      backPath: "/user-management/index.html#/users",
+      backApp: "USER_MANAGEMENT", backParams: "#/users",
       fields: [
         ["User ID", "userId"],
         ["Full Name", "fullName"],
@@ -36,7 +37,7 @@ sap.ui.define([
     Vendors: {
       label: "Vendor",
       titleField: "name",
-      backPath: "/p2p-list-object/index.html?entity=Vendors",
+      backApp: "LIST_OBJECT", backParams: "?entity=Vendors",
       fields: [
         ["Name", "name"],
         ["Email", "email"],
@@ -53,7 +54,7 @@ sap.ui.define([
     Materials: {
       label: "Material",
       titleField: "materialNo",
-      backPath: "/p2p-list-object/index.html?entity=Materials",
+      backApp: "LIST_OBJECT", backParams: "?entity=Materials",
       fields: [
         ["Material", "materialNo"],
         ["Description", "description"],
@@ -67,43 +68,43 @@ sap.ui.define([
     PurchaseRequisitions: {
       label: "Purchase Requisition",
       titleField: "prNo",
-      backPath: "/p2p-list-object/index.html?entity=PurchaseRequisitions",
+      backApp: "LIST_OBJECT", backParams: "?entity=PurchaseRequisitions",
       fields: [["PR Number", "prNo"], ["Requisitioner", "requisitioner"], ["Purchasing Org", "purchasingOrg"], ["Document Type", "documentType"], ["Request Date", "requestDate"], ["Status", "status"], ["Total Items", "totalItems"]]
     },
     RFQs: {
       label: "RFQ",
       titleField: "rfqNo",
-      backPath: "/p2p-list-object/index.html?entity=RFQs",
+      backApp: "LIST_OBJECT", backParams: "?entity=RFQs",
       fields: [["RFQ Number", "rfqNo"], ["RFQ Type", "rfqType"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Submission Deadline", "submissionDeadline"], ["Status", "status"]]
     },
     PurchaseOrders: {
       label: "Purchase Order",
       titleField: "poNo",
-      backPath: "/p2p-list-object/index.html?entity=PurchaseOrders",
+      backApp: "LIST_OBJECT", backParams: "?entity=PurchaseOrders",
       fields: [["PO Number", "poNo"], ["Purchasing Org", "purchasingOrg"], ["Purchasing Group", "purchasingGroup"], ["Company Code", "companyCode"], ["Currency", "currency"], ["Document Date", "documentDate"], ["Delivery Date", "deliveryDate"], ["Status", "status"], ["Total Net Value", "totalNetValue"]]
     },
     InspectionLots: {
       label: "Inspection Lot",
       titleField: "inspectionLotNo",
-      backPath: "/p2p-list-object/index.html?entity=InspectionLots",
+      backApp: "LIST_OBJECT", backParams: "?entity=InspectionLots",
       fields: [["Inspection Lot", "inspectionLotNo"], ["Inspection Type", "inspectionType"], ["Lot Quantity", "lotQuantity"], ["Accepted Quantity", "acceptedQuantity"], ["Rejected Quantity", "rejectedQuantity"], ["Usage Decision", "usageDecisionCode"], ["Rejection Reason", "rejectionReason"], ["Status", "status"]]
     },
     GoodsReceipts: {
       label: "Goods Receipt",
       titleField: "grNo",
-      backPath: "/p2p-list-object/index.html?entity=GoodsReceipts",
+      backApp: "LIST_OBJECT", backParams: "?entity=GoodsReceipts",
       fields: [["GR Number", "grNo"], ["Posting Date", "postingDate"], ["Document Date", "documentDate"], ["Plant", "plant"], ["Storage Location", "storageLocation"], ["Batch", "batch"], ["Total GR Value", "totalGRValue"], ["Status", "status"]]
     },
     Invoices: {
       label: "Invoice",
       titleField: "invoiceNo",
-      backPath: "/p2p-list-object/index.html?entity=Invoices",
+      backApp: "LIST_OBJECT", backParams: "?entity=Invoices",
       fields: [["Invoice Number", "invoiceNo"], ["Invoice Date", "invoiceDate"], ["Posting Date", "postingDate"], ["Currency", "currency"], ["Payment Terms", "paymentTerms"], ["Net Amount", "netAmount"], ["Tax Amount", "taxAmount"], ["Total Payable", "totalPayable"], ["Match Status", "matchStatus"], ["Status", "status"]]
     },
     PaymentRuns: {
       label: "Payment Run",
       titleField: "paymentRunId",
-      backPath: "/p2p-list-object/index.html?entity=PaymentRuns",
+      backApp: "LIST_OBJECT", backParams: "?entity=PaymentRuns",
       fields: [["Payment Run ID", "paymentRunId"], ["Run Date", "runDate"], ["Company Code", "companyCode"], ["Payment Method", "paymentMethod"], ["Next Payment Date", "nextPaymentDate"], ["Status", "status"], ["Total Payment Amount", "totalPaymentAmount"]]
     }
   };
@@ -120,6 +121,15 @@ sap.ui.define([
     PaymentRuns: ["paymentRunId"]
   };
 
+  var ITEMS_CONFIG = {
+    PurchaseRequisitions: "items",
+    RFQs: "vendors,items",
+    PurchaseOrders: "items",
+    InspectionLots: "characteristics",
+    GoodsReceipts: "items",
+    PaymentRuns: "items"
+  };
+
   return Controller.extend("sap.cap.p2p.objectpages.controller.Main", {
     onInit: async function () {
       try {
@@ -129,7 +139,7 @@ sap.ui.define([
         return;
       }
 
-      if (!Auth.requireAuth("/p2p-object-pages/index.html")) {
+      if (!Auth.requireAuth(Navigation.getAppUrl("OBJECT_PAGE"))) {
         return;
       }
 
@@ -139,7 +149,9 @@ sap.ui.define([
         subtitle: "",
         entity: "",
         id: "",
-        fields: []
+        fields: [],
+        items: [],
+        hasItems: false
       }), "detail");
       Auth.applyAuthHeader(this.getOwnerComponent().getModel());
       Header.apply(this, "Object Detail");
@@ -150,7 +162,11 @@ sap.ui.define([
       var entity = this.getView().getModel("detail").getProperty("/entity");
       var config = ENTITY_CONFIG[entity];
 
-      window.location.href = config ? config.backPath : "/home/index.html";
+      if (config && config.backApp) {
+        Navigation.navigate(config.backApp, config.backParams);
+      } else {
+        Navigation.navigate("HOME");
+      }
     },
 
     onEdit: function () {
@@ -203,17 +219,122 @@ sap.ui.define([
       });
     },
 
-    onSubmitPR: function () { this._invokeAction("submitPurchaseRequisition", "prId"); },
-    onApprovePR: function () { this._invokeAction("approvePurchaseRequisition", "prId"); },
-    onIssueRFQ: function () { this._invokeAction("issueRFQ", "rfqId"); },
-    onCreatePO: function () { this._invokeAction("createPOFromRFQ", "rfqId"); },
-    onApprovePO: function () { this._invokeAction("approvePO", "poId"); },
-    onPostUsageDecision: function () { this._invokeAction("postUsageDecision", "lotId"); },
-    onPostGoodsReceipt: function () { this._invokeAction("postGoodsReceipt", "lotId"); },
-    onRunThreeWayMatch: function () { this._invokeAction("runThreeWayMatch", "invoiceId"); },
-    onCreatePaymentAdvice: function () { this._invokeAction("createPaymentAdvice", "invoiceId"); },
-    onExecutePaymentRun: function () { this._invokeAction("executePaymentRun", "paymentRunId"); },
+    onSubmitPR: function () { this._invokeAction("submitPurchaseRequisition", "prId", {}); },
+    onApprovePR: function () { this._invokeAction("approvePurchaseRequisition", "prId", { comments: "Approved" }); },
+    
+    onCreateRFQ: function () { this._invokeAction("createOrGetRFQFromPR", "prId", {}); },
+    onAddVendor: function () { 
+      this._openActionDialog("Add Vendor", [{ label: "Vendor ID", id: "rfqVendor", type: "string" }], "addVendorToRFQ", "rfqId", ["vendorId"]); 
+    },
+    onIssueRFQ: function () { this._invokeAction("issueRFQ", "rfqId", {}); },
+    onReceiveQuotation: function () { 
+      this._openActionDialog("Receive Quotation", [
+        { label: "Vendor ID", id: "quotVendor", type: "string" },
+        { label: "Quoted Amount", id: "quotAmount", type: "number" },
+        { label: "Lead Time (Days)", id: "quotLeadTime", type: "number" },
+        { label: "Remarks", id: "quotRemarks", type: "string" }
+      ], "receiveQuotation", "rfqId", ["vendorId", "quotedAmount", "leadTime", "remarks"]); 
+    },
+    onSelectVendor: function () { 
+      this._openActionDialog("Select Vendor", [{ label: "Vendor ID", id: "selVendor", type: "string" }], "selectVendor", "rfqId", ["vendorId"]); 
+    },
+    onCreatePO: function () {
+      this._openActionDialog("Create PO", [
+        { label: "Delivery Date", id: "poDate", type: "date" },
+        { label: "Currency", id: "poCurrency", type: "string", value: "USD" },
+        { label: "Company Code", id: "poComp", type: "string", value: "1000" },
+        { label: "Purchasing Org", id: "poPorg", type: "string", value: "P001" },
+        { label: "Purchasing Group", id: "poPgrp", type: "string", value: "G01" }
+      ], "createOrGetPOFromRFQ", "rfqId", ["deliveryDate", "currency", "companyCode", "purchasingOrg", "purchasingGroup"]);
+    },
+
+    onSubmitPO: function () { this._invokeAction("submitPO", "poId", {}); },
+    onApprovePO: function () { this._invokeAction("approvePO", "poId", { comments: "Approved" }); },
+    
+    onPostGoodsReceipt: function () { 
+      this._openActionDialog("Post Goods Receipt", [
+        { label: "Posting Date", id: "grDate", type: "date" },
+        { label: "Document Date", id: "grDocDate", type: "date" },
+        { label: "Plant", id: "grPlant", type: "string", value: "1000" },
+        { label: "Storage Location", id: "grLoc", type: "string", value: "RM01" },
+        { label: "Batch", id: "grBatch", type: "string" },
+        { label: "Received Qty", id: "grQty", type: "number" }
+      ], "postGoodsReceipt", "poId", ["postingDate", "documentDate", "plant", "storageLocation", "batch", "receivedQuantity"]); 
+    },
+
+    onCreateInspection: function () { this._invokeAction("createOrGetInspectionLotFromGR", "grId", {}); },
+    
+    onPostUsageDecision: function () { 
+      this._openActionDialog("Post Usage Decision", [
+        { label: "Accepted Qty", id: "qcAccept", type: "number" },
+        { label: "Rejected Qty", id: "qcReject", type: "number" },
+        { label: "Decision Code (PASS/FAIL)", id: "qcDecision", type: "string" }
+      ], "postUsageDecision", "lotId", ["acceptedQuantity", "rejectedQuantity", "usageDecisionCode"]); 
+    },
+    
+    onCreateInvoice: function () { 
+      this._openActionDialog("Create Invoice", [
+        { label: "Invoice Ref", id: "invRef", type: "string" },
+        { label: "Tax Amount", id: "invTax", type: "number", value: 0 },
+        { label: "Due Date", id: "invDue", type: "date" }
+      ], "createOrGetInvoiceFromQC", "lotId", ["invoiceRef", "taxAmount", "dueDate"]); 
+    },
+    
+    onVerifyInvoice: function () { this._invokeAction("verifyInvoice", "invoiceId", {}); },
+    
+    onCreatePaymentRun: function () { 
+      this._openActionDialog("Create Payment Run", [
+        { label: "Payment Method (BANK/UPI)", id: "payMethod", type: "string" },
+        { label: "Payment Date", id: "payDate", type: "date" }
+      ], "createOrGetPaymentRunFromInvoice", "invoiceId", ["paymentMethod", "paymentDate"]); 
+    },
+    
+    onExecutePaymentRun: function () { this._invokeAction("executePaymentRun", "paymentRunId", {}); },
     onReject: function () { this._updateObject({ status: "Rejected" }); },
+
+    _openActionDialog: function (title, fields, actionName, paramName, payloadKeys) {
+      var box = new VBox({ class: "sapUiSmallMargin" });
+      var inputs = {};
+      
+      fields.forEach(function(f) {
+        box.addItem(new Label({ text: f.label }));
+        if (f.type === "date") {
+          inputs[f.id] = new sap.m.DatePicker({ valueFormat: "yyyy-MM-dd", displayFormat: "yyyy-MM-dd" });
+        } else if (f.type === "number") {
+          inputs[f.id] = new Input({ type: "Number", value: f.value !== undefined ? f.value : "" });
+        } else {
+          inputs[f.id] = new Input({ value: f.value !== undefined ? f.value : "" });
+        }
+        box.addItem(inputs[f.id]);
+      });
+
+      var dialog = new Dialog({
+        title: title,
+        content: [box],
+        beginButton: new Button({
+          text: "Confirm",
+          type: "Emphasized",
+          press: function () {
+            var payload = {};
+            fields.forEach(function(f, idx) {
+              var key = payloadKeys[idx];
+              if (f.type === "date") {
+                payload[key] = inputs[f.id].getValue();
+              } else if (f.type === "number") {
+                payload[key] = parseFloat(inputs[f.id].getValue()) || 0;
+              } else {
+                payload[key] = inputs[f.id].getValue();
+              }
+            });
+            this._invokeAction(actionName, paramName, payload);
+            dialog.close();
+          }.bind(this)
+        }),
+        endButton: new Button({ text: "Cancel", press: function () { dialog.close(); } }),
+        afterClose: function () { dialog.destroy(); }
+      });
+      dialog.open();
+    },
 
     _loadFromHash: async function () {
       var route = this._parseHash();
@@ -222,7 +343,7 @@ sap.ui.define([
       if (!route.entity || !route.id || !config) {
         MessageBox.error("Missing or invalid object route.", {
           onClose: function () {
-            window.location.href = "/home/index.html";
+            Navigation.navigate("HOME");
           }
         });
         return;
@@ -234,7 +355,11 @@ sap.ui.define([
         if (!object) {
           MessageBox.error("Selected record was not found.", {
             onClose: function () {
-              window.location.href = config.backPath;
+              if (config && config.backApp) {
+                Navigation.navigate(config.backApp, config.backParams);
+              } else {
+                Navigation.navigate("HOME");
+              }
             }
           });
           return;
@@ -296,29 +421,42 @@ sap.ui.define([
         fields: fields,
         canEdit: RoleAccess.canWriteEntity(entity, role),
         canDelete: role === "P2P_ADMIN",
-        actions: this._getActions(entity, role)
+        actions: this._getActions(entity, role, object.status)
       });
       this.byId("objectPage").setTitle(config.label + " Detail");
     },
 
-    _getActions: function (entity, role) {
+    _getActions: function (entity, role, status) {
       return {
-        submitPR: entity === "PurchaseRequisitions" && RoleAccess.canExecuteAction("submitPurchaseRequisition", role),
-        approvePR: entity === "PurchaseRequisitions" && RoleAccess.canExecuteAction("approvePurchaseRequisition", role),
-        reject: ["PurchaseRequisitions", "PurchaseOrders", "InspectionLots", "Invoices"].indexOf(entity) !== -1 && RoleAccess.canWriteEntity(entity, role),
-        issueRFQ: entity === "RFQs" && RoleAccess.canExecuteAction("issueRFQ", role),
-        createPO: entity === "RFQs" && RoleAccess.canExecuteAction("createPOFromRFQ", role),
-        approvePO: entity === "PurchaseOrders" && RoleAccess.canExecuteAction("approvePO", role),
-        postUsageDecision: entity === "InspectionLots" && RoleAccess.canExecuteAction("postUsageDecision", role),
-        postGoodsReceipt: entity === "GoodsReceipts" && RoleAccess.canExecuteAction("postGoodsReceipt", role),
-        runThreeWayMatch: entity === "Invoices" && RoleAccess.canExecuteAction("runThreeWayMatch", role),
-        createPaymentAdvice: entity === "Invoices" && RoleAccess.canExecuteAction("createPaymentAdvice", role),
-        executePaymentRun: entity === "PaymentRuns" && RoleAccess.canExecuteAction("executePaymentRun", role)
+        submitPR: entity === "PurchaseRequisitions" && status === "CREATED" && RoleAccess.canExecuteAction("submitPurchaseRequisition", role),
+        approvePR: entity === "PurchaseRequisitions" && status === "PENDING_APPROVAL" && RoleAccess.canExecuteAction("approvePurchaseRequisition", role),
+        createRFQ: entity === "PurchaseRequisitions" && status === "APPROVED" && RoleAccess.canExecuteAction("createOrGetRFQFromPR", role),
+        
+        addVendor: entity === "RFQs" && (status === "DRAFT" || status === "VENDORS_ASSIGNED") && RoleAccess.canExecuteAction("addVendorToRFQ", role),
+        issueRFQ: entity === "RFQs" && status === "VENDORS_ASSIGNED" && RoleAccess.canExecuteAction("issueRFQ", role),
+        receiveQuotation: entity === "RFQs" && (status === "ISSUED" || status === "QUOTATIONS_RECEIVED") && RoleAccess.canExecuteAction("receiveQuotation", role),
+        selectVendor: entity === "RFQs" && status === "QUOTATIONS_RECEIVED" && RoleAccess.canExecuteAction("selectVendor", role),
+        createPO: entity === "RFQs" && status === "VENDOR_SELECTED" && RoleAccess.canExecuteAction("createOrGetPOFromRFQ", role),
+        
+        submitPO: entity === "PurchaseOrders" && status === "DRAFT" && RoleAccess.canExecuteAction("submitPO", role),
+        approvePO: entity === "PurchaseOrders" && status === "PENDING_APPROVAL" && RoleAccess.canExecuteAction("approvePO", role),
+        postGoodsReceipt: entity === "PurchaseOrders" && status === "APPROVED" && RoleAccess.canExecuteAction("postGoodsReceipt", role),
+        createInspection: entity === "GoodsReceipts" && status === "POSTED" && RoleAccess.canExecuteAction("createOrGetInspectionLotFromGR", role),
+        postUsageDecision: entity === "InspectionLots" && status === "OPEN" && RoleAccess.canExecuteAction("postUsageDecision", role),
+        createInvoice: entity === "InspectionLots" && status === "PASSED" && RoleAccess.canExecuteAction("createOrGetInvoiceFromQC", role),
+        verifyInvoice: entity === "Invoices" && status === "CREATED" && RoleAccess.canExecuteAction("verifyInvoice", role),
+        createPayment: entity === "Invoices" && status === "VERIFIED" && RoleAccess.canExecuteAction("createOrGetPaymentRunFromInvoice", role),
+        executePaymentRun: entity === "PaymentRuns" && status === "CREATED" && RoleAccess.canExecuteAction("executePaymentRun", role),
+        reject: ["PurchaseRequisitions", "PurchaseOrders", "Invoices"].indexOf(entity) !== -1 && (status === "PENDING_APPROVAL" || status === "CREATED") && RoleAccess.canWriteEntity(entity, role)
       };
     },
 
     _entityUrl: function (entity, id) {
-      return "/odata/v4/p2p/" + encodeURIComponent(entity) + "(ID=" + encodeURIComponent(id) + ")";
+      var url = "/odata/v4/p2p/" + encodeURIComponent(entity) + "(" + encodeURIComponent(id) + ")";
+      if (ITEMS_CONFIG[entity]) {
+        url += "?$expand=" + ITEMS_CONFIG[entity];
+      }
+      return url;
     },
 
     _editableFields: function (entity, config) {
@@ -359,14 +497,15 @@ sap.ui.define([
       this.onBack();
     },
 
-    _invokeAction: async function (actionName, parameterName) {
+    _invokeAction: async function (actionName, parameterName, extendPayload) {
       var detail = this.getView().getModel("detail").getData();
       var payload = {};
 
       payload[parameterName] = detail.id;
-      if (actionName === "createPOFromRFQ") {
-        MessageBox.information("Select-vendor flow is not available on this object page yet.");
-        return;
+      if (extendPayload) {
+        for (var k in extendPayload) {
+          payload[k] = extendPayload[k];
+        }
       }
 
       var response = await fetch("/odata/v4/p2p/" + actionName, {
@@ -378,6 +517,21 @@ sap.ui.define([
       if (!response.ok) {
         MessageBox.error("Action failed.");
         return;
+      }
+
+      try {
+        var responseText = await response.text();
+        var jsonResponse = responseText ? JSON.parse(responseText) : {};
+        if (jsonResponse.value) jsonResponse = JSON.parse(jsonResponse.value);
+        
+        if (jsonResponse.entity && jsonResponse.id && jsonResponse.entity !== detail.entity) {
+          MessageToast.show(jsonResponse.message + ". Opening target document...");
+          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.entity) + "/" + encodeURIComponent(jsonResponse.id));
+          this._loadFromHash();
+          return;
+        }
+      } catch (e) {
+        // Ignore JSON parsing errors
       }
 
       MessageToast.show("Action completed");

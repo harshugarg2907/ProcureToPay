@@ -98,6 +98,9 @@ entity RFQVendors : cuid, managed {
   email     : String(100);
   sentStatus : String(20);
   responseStatus : String(30);
+  quotedAmount : Decimal(15,2);
+  leadTime     : Integer;
+  remarks      : String(200);
 }
 
 entity RFQItems : cuid, managed {
@@ -111,6 +114,7 @@ entity RFQItems : cuid, managed {
 entity PurchaseOrders : cuid, managed {
   poNo            : String(30);
   sourceRFQ       : Association to RFQs;
+  sourcePR        : Association to PurchaseRequisitions;
   vendor          : Association to Vendors;
   purchasingOrg   : String(10);
   purchasingGroup : String(10);

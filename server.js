@@ -17,12 +17,16 @@ const uiApps = [
 
 cds.on("bootstrap", (app) => {
   app.get("/", (_req, res) => {
-    res.redirect("/home/index.html");
+    res.redirect("/home/webapp/index.html");
   });
 
   uiApps.forEach((appName) => {
     app.use(
       `/${appName}`,
+      express.static(path.join(__dirname, "app", appName, "webapp"))
+    );
+    app.use(
+      `/${appName}/webapp`,
       express.static(path.join(__dirname, "app", appName, "webapp"))
     );
   });

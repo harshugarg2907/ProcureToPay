@@ -210,15 +210,27 @@ service P2PService @(path: '/odata/v4/p2p') {
 
   action getCurrentUser(userId: String) returns CurrentUserContext;
   action submitPurchaseRequisition(prId: UUID) returns String;
-  action approvePurchaseRequisition(prId: UUID) returns String;
-  action createRFQFromPR(prId: UUID) returns String;
+  action approvePurchaseRequisition(prId: UUID, comments: String) returns String;
+  action rejectPurchaseRequisition(prId: UUID, comments: String) returns String;
+  
+  action createOrGetRFQFromPR(prId: UUID) returns String;
+  action addVendorToRFQ(rfqId: UUID, vendorId: String) returns String;
   action issueRFQ(rfqId: UUID) returns String;
-  action createPOFromRFQ(rfqId: UUID, vendorId: UUID) returns String;
-  action approvePO(poId: UUID) returns String;
-  action postUsageDecision(lotId: UUID) returns String;
-  action postGoodsReceipt(lotId: UUID) returns String;
-  action runThreeWayMatch(invoiceId: UUID) returns String;
-  action createPaymentAdvice(invoiceId: UUID) returns String;
+  action receiveQuotation(rfqId: UUID, vendorId: String, quotedAmount: Decimal, leadTime: Integer, remarks: String) returns String;
+  action selectVendor(rfqId: UUID, vendorId: String) returns String;
+  action createOrGetPOFromRFQ(rfqId: UUID, deliveryDate: Date, currency: String, companyCode: String, purchasingOrg: String, purchasingGroup: String) returns String;
+  
+  action submitPO(poId: UUID) returns String;
+  action approvePO(poId: UUID, comments: String) returns String;
+  action rejectPO(poId: UUID, comments: String) returns String;
+  
+  action postGoodsReceipt(poId: UUID, postingDate: Date, documentDate: Date, plant: String, storageLocation: String, batch: String, receivedQuantity: Decimal) returns String;
+  action createOrGetInspectionLotFromGR(grId: UUID) returns String;
+  action postUsageDecision(lotId: UUID, acceptedQuantity: Decimal, rejectedQuantity: Decimal, usageDecisionCode: String) returns String;
+  
+  action createOrGetInvoiceFromQC(lotId: UUID, invoiceRef: String, taxAmount: Decimal, dueDate: Date) returns String;
+  action verifyInvoice(invoiceId: UUID) returns String;
+  action createOrGetPaymentRunFromInvoice(invoiceId: UUID, paymentMethod: String, paymentDate: Date) returns String;
   action executePaymentRun(paymentRunId: UUID) returns String;
 
   @readonly

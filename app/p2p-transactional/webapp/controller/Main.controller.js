@@ -5,8 +5,9 @@ sap.ui.define([
   "sap/m/MessageBox",
   "p2p/common/Auth",
   "p2p/common/Header",
-  "p2p/common/RoleAccess"
-], function (Controller, JSONModel, MessageToast, MessageBox, Auth, Header, RoleAccess) {
+  "p2p/common/RoleAccess",
+  "p2p/common/Navigation"
+], function (Controller, JSONModel, MessageToast, MessageBox, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   return Controller.extend("sap.cap.p2p.transactional.controller.Main", {
@@ -18,7 +19,7 @@ sap.ui.define([
         return;
       }
 
-      if (!Auth.requireAuth("/p2p-transactional/index.html")) {
+      if (!Auth.requireAuth(Navigation.getAppUrl("TRANSACTIONAL"))) {
         return;
       }
 
@@ -123,7 +124,7 @@ sap.ui.define([
         return;
       }
 
-      window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id);
+      Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id));
     },
 
     _invokeWithContext: async function (path, parameterName, context, successText) {
@@ -155,7 +156,7 @@ sap.ui.define([
         
         if (jsonResponse.nextEntity && jsonResponse.nextId) {
           MessageToast.show(successText + ". Redirecting to next stage...");
-          window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId);
+          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId));
           return;
         }
 

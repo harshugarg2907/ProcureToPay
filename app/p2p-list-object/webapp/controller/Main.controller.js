@@ -13,8 +13,9 @@ sap.ui.define([
   "sap/m/VBox",
   "p2p/common/Auth",
   "p2p/common/Header",
-  "p2p/common/RoleAccess"
-], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Auth, Header, RoleAccess) {
+  "p2p/common/RoleAccess",
+  "p2p/common/Navigation"
+], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   var ENTITY_CONFIG = {
@@ -49,7 +50,7 @@ sap.ui.define([
         return;
       }
 
-      if (!Auth.requireAuth("/p2p-list-object/index.html")) {
+      if (!Auth.requireAuth(Navigation.getAppUrl("LIST_OBJECT"))) {
         return;
       }
 
@@ -86,7 +87,7 @@ sap.ui.define([
         return;
       }
 
-      window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(id);
+      Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(id));
     },
 
     onCreate: function () {
@@ -191,7 +192,7 @@ sap.ui.define([
         MessageToast.show("Created");
         
         if (newId) {
-          window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(newId);
+          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(newId));
         } else {
           this._loadRows();
         }
@@ -201,7 +202,7 @@ sap.ui.define([
     },
 
     _editableFields: function () {
-      var generated = GENERATED_FIELDS[this._entity] || [];
+      var generated = (GENERATED_FIELDS[this._entity] || []).concat(["status"]);
 
       return this._config.fields.filter(function (field) {
         return generated.indexOf(field) === -1;
