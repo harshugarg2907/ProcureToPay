@@ -26,10 +26,6 @@ sap.ui.define([], function () {
         READ: ["Admin"],
         WRITE: ["Admin"]
       },
-      UserRoles: {
-        READ: ["Admin"],
-        WRITE: ["Admin"]
-      },
       Vendors: {
         READ: ["Admin", "ProcurementOfficer", "FinanceOfficer", "Viewer"],
         WRITE: ["Admin"]
@@ -146,11 +142,6 @@ sap.ui.define([], function () {
 
     navigateIfAllowed: function (path) {
       var role = localStorage.getItem("userRole");
-
-      if (!role) {
-        window.location.href = "/login-page/index.html";
-        return;
-      }
 
       if (!this.isRouteAllowed(path, role)) {
         window.alert("You do not have permission to access this page.");

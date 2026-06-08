@@ -28,9 +28,27 @@ sap.ui.define([
     Invoices: { title: "Supplier Invoices", search: "Search invoice number or status", fields: ["invoiceNo", "invoiceDate", "postingDate", "currency", "paymentTerms", "netAmount", "taxAmount", "totalPayable", "matchStatus", "status"], columns: [["Invoice", "invoiceNo"], ["Invoice Date", "invoiceDate"], ["Currency", "currency"], ["Payable", "totalPayable"], ["Match", "matchStatus"], ["Status", "status"]] },
     PaymentRuns: { title: "Payment Runs", search: "Search payment run ID, status, company code", fields: ["paymentRunId", "runDate", "companyCode", "paymentMethod", "nextPaymentDate", "status", "totalPaymentAmount"], columns: [["Run", "paymentRunId"], ["Run Date", "runDate"], ["Company Code", "companyCode"], ["Method", "paymentMethod"], ["Amount", "totalPaymentAmount"], ["Status", "status"]] }
   };
+  var GENERATED_FIELDS = {
+    Vendors: ["vendorNo"],
+    Materials: ["materialNo"],
+    PurchaseRequisitions: ["prNo"],
+    RFQs: ["rfqNo"],
+    PurchaseOrders: ["poNo"],
+    InspectionLots: ["inspectionLotNo"],
+    GoodsReceipts: ["grNo"],
+    Invoices: ["invoiceNo"],
+    PaymentRuns: ["paymentRunId"]
+  };
 
   return Controller.extend("sap.cap.p2p.listobject.controller.Main", {
-    onInit: function () {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
       if (!Auth.requireAuth("/p2p-list-object/index.html")) {
         return;
       }
@@ -124,7 +142,7 @@ sap.ui.define([
       var inputs = {};
       var box = new VBox({ class: "sapUiSmallMargin p2pDialogForm", width: "24rem" });
 
-      this._config.fields.forEach(function (field) {
+      this._editableFields().forEach(function (field) {
         inputs[field] = new Input({ value: data[field] || "" });
         box.addItem(new Label({ text: field }));
         box.addItem(inputs[field]);
@@ -138,7 +156,7 @@ sap.ui.define([
           type: "Emphasized",
           press: async function () {
             var payload = {};
-            this._config.fields.forEach(function (field) {
+            this._editableFields().forEach(function (field) {
               var value = inputs[field].getValue();
               if (value !== "") {
                 payload[field] = value;
@@ -172,6 +190,14 @@ sap.ui.define([
       } catch (error) {
         MessageBox.error(error.message || "Create failed.");
       }
+    },
+
+    _editableFields: function () {
+      var generated = GENERATED_FIELDS[this._entity] || [];
+
+      return this._config.fields.filter(function (field) {
+        return generated.indexOf(field) === -1;
+      });
     }
   });
 });

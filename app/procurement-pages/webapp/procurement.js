@@ -3,12 +3,6 @@
 
   var message = document.getElementById("message");
 
-  if (!window.P2PAuth.requireAuth("/procurement-pages/index.html")) {
-    return;
-  }
-
-  window.P2PAuth.renderHeader("Procurement Pages");
-
   var entity = new URLSearchParams(window.location.search).get("entity") || "PurchaseRequisitions";
   var targetByEntity = {
     PurchaseRequisitions: "prs",
@@ -52,8 +46,17 @@
     }).join("");
   }
 
-  if (activeTarget === "prs") {
-    read("PurchaseRequisitions?$select=prNo,requisitioner,purchasingOrg,status").then(function (result) {
+  async function start() {
+    await window.P2PAuth.loadSession();
+
+    if (!window.P2PAuth.requireAuth("/procurement-pages/index.html")) {
+      return;
+    }
+
+    window.P2PAuth.renderHeader("Procurement Pages");
+
+    if (activeTarget === "prs") {
+      read("PurchaseRequisitions?$select=prNo,requisitioner,purchasingOrg,status").then(function (result) {
       render("prsBody", result.value, [
       function (row) { return row.prNo || ""; },
       function (row) { return row.requisitioner || ""; },
@@ -63,8 +66,8 @@
     }).catch(function (error) {
       message.textContent = error.message;
     });
-  } else if (activeTarget === "rfqs") {
-    read("RFQs?$select=rfqNo,purchasingOrg,submissionDeadline,status").then(function (result) {
+    } else if (activeTarget === "rfqs") {
+      read("RFQs?$select=rfqNo,purchasingOrg,submissionDeadline,status").then(function (result) {
       render("rfqsBody", result.value, [
       function (row) { return row.rfqNo || ""; },
       function (row) { return row.purchasingOrg || ""; },
@@ -74,8 +77,8 @@
     }).catch(function (error) {
       message.textContent = error.message;
     });
-  } else {
-    read("PurchaseOrders?$select=poNo,totalNetValue,status&$expand=vendor($select=name)").then(function (result) {
+    } else {
+      read("PurchaseOrders?$select=poNo,totalNetValue,status&$expand=vendor($select=name)").then(function (result) {
       render("posBody", result.value, [
       function (row) { return row.poNo || ""; },
       function (row) { return row.vendor ? row.vendor.name : ""; },
@@ -85,5 +88,10 @@
     }).catch(function (error) {
       message.textContent = error.message;
     });
+    }
   }
+
+  start().catch(function (error) {
+    message.textContent = error.message || "Unable to load your BTP user session.";
+  });
 }());

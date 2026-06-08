@@ -10,7 +10,7 @@
             <content>
               <VBox renderType="Bare">
                 <Title text="Admin Access Control" level="H2" />
-                <Text text="Create users, assign roles, and manage access. The admin account is protected from edits and deletion." class="sapUiTinyMarginTop" />
+                <Text text="Create and maintain application user profiles. Role collections are assigned in SAP BTP cockpit." class="sapUiTinyMarginTop" />
               </VBox>
             </content>
           </Panel>
@@ -41,7 +41,6 @@
                   <Column demandPopin="true" minScreenWidth="Tablet"><Text text="Company" /></Column>
                   <Column demandPopin="true" minScreenWidth="Desktop"><Text text="Cost Center" /></Column>
                   <Column><Text text="Status" /></Column>
-                  <Column demandPopin="true" minScreenWidth="Desktop"><Text text="Roles" /></Column>
                 </columns>
                 <items>
                   <ColumnListItem type="Navigation" press=".onUserRowPress">
@@ -52,7 +51,6 @@
                       <Text text="{admin>companyCode}" />
                       <Text text="{admin>costCenter}" />
                       <ObjectStatus text="{admin>status}" state="{= ${admin>status} === 'Active' ? 'Success' : 'Warning' }" />
-                      <Text text="{admin>roleSummary}" wrapping="true" />
                     </cells>
                   </ColumnListItem>
                 </items>
@@ -81,7 +79,7 @@
                     <ObjectAttribute title="Company Code" text="{admin>/selectedUser/companyCode}" />
                     <ObjectAttribute title="Cost Center" text="{admin>/selectedUser/costCenter}" />
                     <ObjectAttribute title="Language" text="{admin>/selectedUser/language}" />
-                    <ObjectAttribute title="Roles" text="{admin>/selectedUser/roleSummary}" />
+                    <ObjectAttribute title="Role Source" text="Managed in SAP BTP cockpit" />
                   </attributes>
                   <statuses>
                     <ObjectStatus title="Status" text="{admin>/selectedUser/status}" state="{= ${admin>/selectedUser/status} === 'Active' ? 'Success' : 'Warning' }" />
@@ -92,43 +90,6 @@
             </content>
           </Panel>
 
-          <Panel headerText="Role Management" backgroundDesign="Solid" visible="{= ${admin>/mode} === 'object' }">
-            <headerToolbar>
-              <Toolbar>
-                <Title text="{admin>/rolePanelTitle}" level="H3" />
-                <ToolbarSpacer />
-                <Button text="Add Role" icon="sap-icon://add" type="Emphasized" enabled="{admin>/canMutateSelectedUser}" press=".onAddRole" />
-                <Button text="Edit Role" icon="sap-icon://edit" enabled="{admin>/canMutateSelectedRole}" press=".onEditRole" />
-                <Button text="Remove Role" icon="sap-icon://delete" type="Reject" enabled="{admin>/canMutateSelectedRole}" press=".onDeleteRole" />
-              </Toolbar>
-            </headerToolbar>
-            <content>
-              <Table
-                id="rolesTable"
-                mode="SingleSelectMaster"
-                growing="true"
-                growingThreshold="25"
-                selectionChange=".onRoleSelectionChange"
-                items="{admin>/visibleRoles}">
-                <columns>
-                  <Column><Text text="User" /></Column>
-                  <Column><Text text="Role" /></Column>
-                  <Column demandPopin="true" minScreenWidth="Tablet"><Text text="Module" /></Column>
-                  <Column><Text text="Status" /></Column>
-                </columns>
-                <items>
-                  <ColumnListItem type="Active" press=".onRoleRowPress">
-                    <cells>
-                      <ObjectIdentifier title="{admin>userId}" text="{admin>fullName}" />
-                      <Text text="{admin>roleName}" />
-                      <Text text="{admin>module}" />
-                      <ObjectStatus text="{admin>status}" state="{= ${admin>status} === 'Active' ? 'Success' : 'Warning' }" />
-                    </cells>
-                  </ColumnListItem>
-                </items>
-              </Table>
-            </content>
-          </Panel>
         </VBox>
       </content>
     </Page>

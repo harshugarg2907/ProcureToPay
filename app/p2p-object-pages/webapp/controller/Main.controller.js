@@ -15,6 +15,24 @@ sap.ui.define([
   "use strict";
 
   var ENTITY_CONFIG = {
+    Users: {
+      label: "User",
+      titleField: "userId",
+      backPath: "/user-management/index.html#/users",
+      fields: [
+        ["User ID", "userId"],
+        ["Full Name", "fullName"],
+        ["Email", "email"],
+        ["Company Code", "companyCode"],
+        ["Cost Center", "costCenter"],
+        ["Language", "language"],
+        ["Status", "status"],
+        ["Created At", "createdAt"],
+        ["Created By", "createdBy"],
+        ["Modified At", "modifiedAt"],
+        ["Modified By", "modifiedBy"]
+      ]
+    },
     Vendors: {
       label: "Vendor",
       titleField: "name",
@@ -89,9 +107,28 @@ sap.ui.define([
       fields: [["Payment Run ID", "paymentRunId"], ["Run Date", "runDate"], ["Company Code", "companyCode"], ["Payment Method", "paymentMethod"], ["Next Payment Date", "nextPaymentDate"], ["Status", "status"], ["Total Payment Amount", "totalPaymentAmount"]]
     }
   };
+  var READ_ONLY_FIELDS = {
+    Users: ["userId", "createdAt", "createdBy", "modifiedAt", "modifiedBy"],
+    Vendors: ["vendorNo", "createdAt", "createdBy", "modifiedAt", "modifiedBy"],
+    Materials: ["materialNo"],
+    PurchaseRequisitions: ["prNo"],
+    RFQs: ["rfqNo"],
+    PurchaseOrders: ["poNo"],
+    InspectionLots: ["inspectionLotNo"],
+    GoodsReceipts: ["grNo"],
+    Invoices: ["invoiceNo"],
+    PaymentRuns: ["paymentRunId"]
+  };
 
   return Controller.extend("sap.cap.p2p.objectpages.controller.Main", {
-    onInit: function () {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
       if (!Auth.requireAuth("/p2p-object-pages/index.html")) {
         return;
       }
@@ -123,7 +160,7 @@ sap.ui.define([
       var inputs = {};
       var box = new VBox({ class: "sapUiSmallMargin p2pDialogForm", width: "24rem" });
 
-      config.fields.forEach(function (field) {
+      this._editableFields(data.entity, config).forEach(function (field) {
         var name = field[1];
         inputs[name] = new Input({ value: data.object[name] || "" });
         box.addItem(new Label({ text: field[0] }));
@@ -138,7 +175,7 @@ sap.ui.define([
           type: "Emphasized",
           press: async function () {
             var payload = {};
-            config.fields.forEach(function (field) {
+            this._editableFields(data.entity, config).forEach(function (field) {
               var name = field[1];
               var value = inputs[name].getValue();
               if (value !== "") {
@@ -282,6 +319,14 @@ sap.ui.define([
 
     _entityUrl: function (entity, id) {
       return "/odata/v4/p2p/" + encodeURIComponent(entity) + "(ID=" + encodeURIComponent(id) + ")";
+    },
+
+    _editableFields: function (entity, config) {
+      var readOnly = READ_ONLY_FIELDS[entity] || [];
+
+      return config.fields.filter(function (field) {
+        return readOnly.indexOf(field[1]) === -1;
+      });
     },
 
     _updateObject: async function (payload) {

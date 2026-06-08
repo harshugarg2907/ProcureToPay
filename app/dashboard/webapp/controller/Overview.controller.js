@@ -5,7 +5,7 @@ sap.ui.define([
 
   return Controller.extend("sap.cap.p2p.dashboard.controller.Overview", {
     openLogin: function () {
-      window.location.href = "/login-page/index.html";
+      window.location.href = "/home/index.html";
     },
 
     openProcurement: function () {

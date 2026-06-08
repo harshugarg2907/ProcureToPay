@@ -36,21 +36,6 @@ service P2PService @(path: '/odata/v4/p2p') {
     status
   };
 
-  @restrict: [
-    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
-  ]
-  entity UserRoles as projection on db.UserRoles {
-    key ID,
-    createdAt,
-    createdBy,
-    modifiedAt,
-    modifiedBy,
-    user,
-    roleName,
-    module,
-    status
-  };
-
   type UserRoleContext {
     roleName : String(50);
     module   : String(30);

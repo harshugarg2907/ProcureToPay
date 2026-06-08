@@ -1,13 +1,36 @@
 const cds = require('@sap/cds');
 
 const today = () => new Date().toISOString().slice(0, 10);
-const nextId = (prefix) => `${prefix}-${Date.now().toString().slice(-8)}`;
+const nextId = (prefix) => {
+  const stamp = Date.now().toString(36).toUpperCase();
+  const suffix = Math.random().toString(36).slice(2, 5).toUpperCase();
+  return `${prefix}-${stamp}${suffix}`;
+};
+
+const GENERATED_BUSINESS_IDS = new Map([
+  ['Vendors', ['vendorNo', 'VEN']],
+  ['Materials', ['materialNo', 'MAT']],
+  ['PurchaseRequisitions', ['prNo', 'PR']],
+  ['RFQs', ['rfqNo', 'RFQ']],
+  ['PurchaseOrders', ['poNo', 'PO']],
+  ['InspectionLots', ['inspectionLotNo', 'LOT']],
+  ['GoodsReceipts', ['grNo', 'GR']],
+  ['Invoices', ['invoiceNo', 'INV']],
+  ['PaymentRuns', ['paymentRunId', 'PAY']]
+]);
+const BTP_ROLES = [
+  'Admin',
+  'ProcurementOfficer',
+  'QCInspector',
+  'GoodsReceiptOfficer',
+  'FinanceOfficer',
+  'Viewer'
+];
 
 module.exports = cds.service.impl(async function () {
   const {
     CurrentUser,
     Users: ServiceUsers,
-    UserRoles: ServiceUserRoles,
     Vendors,
     Materials,
     PurchaseRequisitions,
@@ -29,15 +52,28 @@ module.exports = cds.service.impl(async function () {
     PaymentRunItems
   } = cds.entities('sap.cap.p2p');
 
-  const getUserWithRoles = async (userId) => {
-    let user = await SELECT.one.from(Users).where({ userId });
-    if (!user) user = await SELECT.one.from(Users).where({ userId: 'viewer' });
-    if (!user) return null;
+  const getBtpRoles = (req) => BTP_ROLES.filter((role) => req.user && req.user.is(role));
 
-    const roles = await SELECT.from(UserRoles).where({ user_ID: user.ID });
+  const getCurrentUserContext = async (req, requestedUserId) => {
+    const userId = requestedUserId || req.user.id || 'anonymous';
+    const roles = getBtpRoles(req);
+    const user = await SELECT.one.from(Users).where({ userId });
+    const attr = req.user && req.user.attr || {};
+
     return {
-      ...user,
-      roles
+      ID: user && user.ID,
+      userId,
+      fullName: user && user.fullName || attr.given_name && attr.family_name && `${attr.given_name} ${attr.family_name}` || userId,
+      email: user && user.email || attr.email || '',
+      companyCode: user && user.companyCode || '',
+      costCenter: user && user.costCenter || '',
+      language: user && user.language || 'EN',
+      status: user && user.status || 'Active',
+      roles: roles.map((roleName) => ({
+        roleName,
+        module: 'BTP',
+        status: 'Active'
+      }))
     };
   };
 
@@ -55,16 +91,8 @@ module.exports = cds.service.impl(async function () {
     return columns.some((column) => column.func === 'count');
   };
 
-  const getRoleUser = async (roleId, fallbackUserId) => {
-    const role = roleId ? await SELECT.one.from(ServiceUserRoles).where({ ID: roleId }) : null;
-    const userId = fallbackUserId || (role && role.user_ID);
-    return userId ? SELECT.one.from(ServiceUsers).where({ ID: userId }) : null;
-  };
-
   this.on('READ', CurrentUser, async (req) => {
-    const userId = req.user.id === 'anonymous' ? 'viewer' : req.user.id;
-    const user = await getUserWithRoles(userId);
-    if (!user) return req.error(404, 'Current user not found.');
+    const user = await getCurrentUserContext(req);
     if (req.query.SELECT.one) return user;
 
     const result = [user];
@@ -89,40 +117,18 @@ module.exports = cds.service.impl(async function () {
     return rows;
   });
 
-  this.on('READ', ServiceUserRoles, async (req) => {
-    const id = getRequestedId(req);
-    const rows = id
-      ? await SELECT.from(UserRoles).where({ ID: id })
-      : await SELECT.from(UserRoles).orderBy('roleName');
-    const userIds = [...new Set(rows.map((role) => role.user_ID).filter(Boolean))];
-    const usersById = {};
-
-    if (userIds.length) {
-      const roleUsers = await SELECT.from(Users).where({ ID: { in: userIds } });
-      for (const user of roleUsers) {
-        usersById[user.ID] = user;
-      }
-    }
-
-    const result = rows.map((role) => ({
-      ...role,
-      user: usersById[role.user_ID] || null
-    }));
-
-    if (id) return result[0] || req.error(404, 'User role not found.');
-    if (isCountQuery(req)) {
-      return [{ $count: result.length }];
-    }
-
-    result.$count = result.length;
-    return result;
-  });
-
   this.before(['CREATE', 'UPDATE'], [PurchaseOrders, GoodsReceipts, Invoices, PaymentRuns], (req) => {
     for (const field of ['totalNetValue', 'totalGRValue', 'netAmount', 'taxAmount', 'totalPayable', 'totalPaymentAmount']) {
       if (req.data[field] !== undefined && Number(req.data[field]) < 0) req.error(400, 'Amounts must be positive.');
     }
   });
+
+  for (const [entityName, [fieldName, prefix]] of GENERATED_BUSINESS_IDS.entries()) {
+    const entity = this.entities[entityName];
+    this.before('CREATE', entity, (req) => {
+      req.data[fieldName] = nextId(prefix);
+    });
+  }
 
   this.before('CREATE', ServiceUsers, async (req) => {
     if (isAdminUser(req.data)) {
@@ -137,21 +143,15 @@ module.exports = cds.service.impl(async function () {
     if (isAdminUser(user)) {
       return req.error(403, 'The admin user cannot be changed or deleted.');
     }
-  });
 
-  this.before(['CREATE', 'UPDATE', 'DELETE'], ServiceUserRoles, async (req) => {
-    const id = getRequestedId(req);
-    const user = await getRoleUser(id, req.data.user_ID);
-
-    if (isAdminUser(user)) {
-      return req.error(403, 'Admin roles are protected and cannot be changed or deleted.');
+    if (req.event === 'DELETE' && id) {
+      await DELETE.from(UserRoles).where({ user_ID: id });
     }
   });
 
   this.on('getCurrentUser', async (req) => {
-    const userId = req.data.userId || req.user.id || 'viewer';
-    const user = await getUserWithRoles(userId);
-    if (!user) return req.error(404, 'Current user not found.');
+    const user = await getCurrentUserContext(req);
+    if (!user.roles.length) return req.error(403, 'No BTP role collection is assigned to this user.');
     return user;
   });
 

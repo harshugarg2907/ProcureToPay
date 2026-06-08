@@ -3,12 +3,6 @@
 
   var message = document.getElementById("message");
 
-  if (!window.P2PAuth.requireAuth("/dashboard/index.html")) {
-    return;
-  }
-
-  window.P2PAuth.renderHeader("P2P Dashboard");
-
   function amount(value) {
     return Number(value || 0).toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
   }
@@ -25,16 +19,30 @@
     }).join("");
   }
 
-  Promise.all([read("POStatusAnalytics"), read("VendorSpendAnalytics")]).then(function (results) {
-    render("poStatusBody", results[0].value, [
-      function (row) { return row.status || ""; },
-      function (row) { return row.total || 0; }
-    ]);
-    render("vendorSpendBody", results[1].value, [
-      function (row) { return row.vendorName || ""; },
-      function (row) { return amount(row.totalSpend); }
-    ]);
-  }).catch(function (error) {
-    message.textContent = error.message;
+  async function start() {
+    await window.P2PAuth.loadSession();
+
+    if (!window.P2PAuth.requireAuth("/dashboard/index.html")) {
+      return;
+    }
+
+    window.P2PAuth.renderHeader("P2P Dashboard");
+
+    Promise.all([read("POStatusAnalytics"), read("VendorSpendAnalytics")]).then(function (results) {
+      render("poStatusBody", results[0].value, [
+        function (row) { return row.status || ""; },
+        function (row) { return row.total || 0; }
+      ]);
+      render("vendorSpendBody", results[1].value, [
+        function (row) { return row.vendorName || ""; },
+        function (row) { return amount(row.totalSpend); }
+      ]);
+    }).catch(function (error) {
+      message.textContent = error.message;
+    });
+  }
+
+  start().catch(function (error) {
+    message.textContent = error.message || "Unable to load your BTP user session.";
   });
 }());

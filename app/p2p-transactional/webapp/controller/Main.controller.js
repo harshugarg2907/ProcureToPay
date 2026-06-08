@@ -10,7 +10,14 @@ sap.ui.define([
   "use strict";
 
   return Controller.extend("sap.cap.p2p.transactional.controller.Main", {
-    onInit: function () {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
       if (!Auth.requireAuth("/p2p-transactional/index.html")) {
         return;
       }

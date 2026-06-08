@@ -1,14 +1,22 @@
 sap.ui.define([
   "sap/ui/core/mvc/Controller",
   "sap/ui/model/json/JSONModel",
+  "sap/m/MessageBox",
   "p2p/common/Auth",
   "p2p/common/Header",
   "p2p/common/RoleAccess"
-], function (Controller, JSONModel, Auth, Header, RoleAccess) {
+], function (Controller, JSONModel, MessageBox, Auth, Header, RoleAccess) {
   "use strict";
 
   return Controller.extend("p2p.home.controller.Home", {
-    onInit: function () {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
       if (!Auth.requireAuth("/home/index.html")) {
         return;
       }

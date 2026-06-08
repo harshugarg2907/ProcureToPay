@@ -10,9 +10,6 @@ sap.ui.define([
 
     init: function () {
       UIComponent.prototype.init.apply(this, arguments);
-      if (!localStorage.getItem("loggedInUser") || !localStorage.getItem("userRole")) {
-        window.location.href = "/login-page/index.html";
-      }
     }
   });
 });

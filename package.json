@@ -10,7 +10,7 @@
     "build:router-resources": "node scripts/copy-router-resources.js",
     "build:mta": "mbt build",
     "deploy:cf": "cf deploy mta_archives/sap-cap-p2p_1.0.0.mtar",
-    "lint:ui5": "cd app/p2p-ui && ui5lint && cd ../login-page && ui5lint && cd ../dashboard && ui5lint && cd ../procurement-pages && ui5lint && cd ../p2p-list-object && ui5lint && cd ../p2p-analytical && ui5lint && cd ../p2p-transactional && ui5lint && cd ../p2p-object-pages && ui5lint",
+    "lint:ui5": "cd app/p2p-ui && ui5lint && cd ../dashboard && ui5lint && cd ../procurement-pages && ui5lint && cd ../p2p-list-object && ui5lint && cd ../p2p-analytical && ui5lint && cd ../p2p-transactional && ui5lint && cd ../p2p-object-pages && ui5lint",
     "test": "npm run deploy"
   },
   "dependencies": {
