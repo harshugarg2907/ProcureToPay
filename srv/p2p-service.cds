@@ -230,7 +230,10 @@ service P2PService @(path: '/odata/v4/p2p') {
   action executePaymentRun(paymentRunId: UUID) returns String;
 
   @readonly
+  @requires: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER']
   entity POStatusAnalytics as select from db.PurchaseOrders { key status, count(*) as total: Integer } group by status;
+
   @readonly
+  @requires: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER']
   entity VendorSpendAnalytics as select from db.PurchaseOrders { key vendor.name as vendorName, sum(totalNetValue) as totalSpend: Decimal(15,2) } group by vendor.name;
 }

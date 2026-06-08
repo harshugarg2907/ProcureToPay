@@ -10,11 +10,12 @@ sap.ui.define([
   "sap/m/Select",
   "sap/ui/core/Item",
   "sap/m/VBox",
+  "sap/m/DatePicker",
   "p2p/common/Auth",
   "p2p/common/Header",
   "p2p/common/RoleAccess",
   "p2p/common/Navigation"
-], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, Select, Item, VBox, Auth, Header, RoleAccess, Navigation) {
+], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, Select, Item, VBox, DatePicker, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   var ENTITY_CONFIG = {
@@ -71,7 +72,7 @@ sap.ui.define([
       label: "Purchase Requisition",
       titleField: "prNo",
       backApp: "LIST_OBJECT", backParams: "?entity=PurchaseRequisitions",
-      fields: [["PR Number", "prNo"], ["Requisitioner", "requisitioner"], ["Purchasing Org", "purchasingOrg"], ["Document Type", "documentType"], ["Request Date", "requestDate"], ["Status", "status"], ["Total Items", "totalItems"]]
+      fields: [["PR Number", "prNo"], ["Requisitioner", "requisitioner"], ["Purchasing Org", "purchasingOrg"], ["Material Code", "documentType"], ["Request Date", "requestDate"], ["Status", "status"], ["Total Items", "totalItems"]]
     },
     RFQs: {
       label: "RFQ",
@@ -227,6 +228,12 @@ sap.ui.define([
             select.addItem(new Item({ key: s, text: text }));
           });
           inputs[name] = select;
+        } else if (["requestDate", "submissionDeadline", "documentDate", "deliveryDate", "postingDate", "invoiceDate", "runDate", "nextPaymentDate"].indexOf(name) !== -1) {
+          inputs[name] = new DatePicker({
+            displayFormat: "yyyy-MM-dd",
+            valueFormat: "yyyy-MM-dd",
+            value: data.object[name] || ""
+          });
         } else {
           inputs[name] = new Input({ value: data.object[name] || "" });
         }
@@ -281,9 +288,8 @@ sap.ui.define([
       this._openActionDialog("Receive Quotation", [
         { label: "Vendor", id: "quotVendor", type: "vendorSelect" },
         { label: "Quoted Amount", id: "quotAmount", type: "number" },
-        { label: "Lead Time (Days)", id: "quotLeadTime", type: "number" },
-        { label: "Remarks", id: "quotRemarks", type: "string" }
-      ], "receiveQuotation", "rfqId", ["vendorId", "quotedAmount", "leadTime", "remarks"]); 
+        { label: "Lead Time (Days)", id: "quotLeadTime", type: "number" }
+      ], "receiveQuotation", "rfqId", ["vendorId", "quotedAmount", "leadTime"]); 
     },
     onSelectVendor: function () { 
       this._openActionDialog("Select Vendor", [{ label: "Vendor", id: "selVendor", type: "vendorSelect" }], "selectVendor", "rfqId", ["vendorId"]); 
@@ -316,9 +322,8 @@ sap.ui.define([
       this._openActionDialog("Post Usage Decision", [
         { label: "Accepted Qty", id: "qcAccept", type: "number" },
         { label: "Rejected Qty", id: "qcReject", type: "number" },
-        { label: "Decision", id: "qcDecision", type: "decisionSelect" },
-        { label: "Remarks", id: "qcRemark", type: "string" }
-      ], "postUsageDecision", "lotId", ["acceptedQuantity", "rejectedQuantity", "usageDecisionCode", "rejectionReason"]); 
+        { label: "Decision", id: "qcDecision", type: "decisionSelect" }
+      ], "postUsageDecision", "lotId", ["acceptedQuantity", "rejectedQuantity", "usageDecisionCode"]); 
     },
     
     onVerifyInvoice: function () { this._invokeAction("verifyInvoice", "invoiceId", {}); },

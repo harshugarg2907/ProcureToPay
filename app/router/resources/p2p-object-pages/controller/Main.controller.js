@@ -8,10 +8,11 @@ sap.ui.define([
   "sap/m/MessageBox",
   "sap/m/MessageToast",
   "sap/m/VBox",
+  "sap/m/DatePicker",
   "p2p/common/Auth",
   "p2p/common/Header",
   "p2p/common/RoleAccess"
-], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, VBox, Auth, Header, RoleAccess) {
+], function (Controller, JSONModel, Button, Dialog, Input, Label, MessageBox, MessageToast, VBox, DatePicker, Auth, Header, RoleAccess) {
   "use strict";
 
   var ENTITY_CONFIG = {
@@ -162,7 +163,15 @@ sap.ui.define([
 
       this._editableFields(data.entity, config).forEach(function (field) {
         var name = field[1];
-        inputs[name] = new Input({ value: data.object[name] || "" });
+        if (["requestDate", "submissionDeadline", "documentDate", "deliveryDate", "postingDate", "invoiceDate", "runDate", "nextPaymentDate"].indexOf(name) !== -1) {
+          inputs[name] = new DatePicker({
+            displayFormat: "yyyy-MM-dd",
+            valueFormat: "yyyy-MM-dd",
+            value: data.object[name] || ""
+          });
+        } else {
+          inputs[name] = new Input({ value: data.object[name] || "" });
+        }
         box.addItem(new Label({ text: field[0] }));
         box.addItem(inputs[name]);
       });
