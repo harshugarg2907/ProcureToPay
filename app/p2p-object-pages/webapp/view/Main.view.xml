@@ -17,13 +17,16 @@
                   <Button text="Submit PR" visible="{detail>/actions/submitPR}" press=".onSubmitPR" />
                   <Button text="Approve PR" visible="{detail>/actions/approvePR}" press=".onApprovePR" />
                   <Button text="Reject" visible="{detail>/actions/reject}" press=".onReject" />
+                  <Button text="Add Vendor" visible="{detail>/actions/addVendor}" press=".onAddVendor" />
                   <Button text="Issue RFQ" visible="{detail>/actions/issueRFQ}" press=".onIssueRFQ" />
+                  <Button text="Receive Quotation" visible="{detail>/actions/receiveQuotation}" press=".onReceiveQuotation" />
+                  <Button text="Select Vendor" visible="{detail>/actions/selectVendor}" press=".onSelectVendor" />
                   <Button text="Create PO" visible="{detail>/actions/createPO}" press=".onCreatePO" />
+                  <Button text="Submit PO" visible="{detail>/actions/submitPO}" press=".onSubmitPO" />
                   <Button text="Approve PO" visible="{detail>/actions/approvePO}" press=".onApprovePO" />
-                  <Button text="Post Usage Decision" visible="{detail>/actions/postUsageDecision}" press=".onPostUsageDecision" />
                   <Button text="Post Goods Receipt" visible="{detail>/actions/postGoodsReceipt}" press=".onPostGoodsReceipt" />
-                  <Button text="Run Match" visible="{detail>/actions/runThreeWayMatch}" press=".onRunThreeWayMatch" />
-                  <Button text="Payment Advice" visible="{detail>/actions/createPaymentAdvice}" press=".onCreatePaymentAdvice" />
+                  <Button text="Post Usage Decision" visible="{detail>/actions/postUsageDecision}" press=".onPostUsageDecision" />
+                  <Button text="Verify Invoice" visible="{detail>/actions/verifyInvoice}" press=".onVerifyInvoice" />
                   <Button text="Execute Payment" visible="{detail>/actions/executePaymentRun}" press=".onExecutePaymentRun" />
                 </OverflowToolbar>
               </headerToolbar>
@@ -31,11 +34,15 @@
                 <ObjectHeader
                   title="{detail>/title}"
                   intro="{detail>/subtitle}">
+                  <statuses>
+                    <ObjectStatus title="Process Stage" text="{detail>/processStatusMessage}" state="Information" />
+                  </statuses>
                 </ObjectHeader>
               </content>
             </Panel>
             <Panel class="p2pCard sapUiMediumMarginTop" headerText="Details">
               <content>
+                <MessageStrip text="{detail>/warningMessage}" type="Error" showIcon="true" visible="{detail>/showWarning}" class="sapUiSmallMarginBottom sapUiTinyMarginTop" />
                 <Table items="{detail>/fields}" growing="true">
                   <columns>
                     <Column><Text text="Field" /></Column>
@@ -52,6 +59,16 @@
                 </Table>
               </content>
             </Panel>
+            <VBox items="{detail>/dynamicLists}" visible="{detail>/hasDynamicLists}">
+              <Panel class="p2pCard sapUiMediumMarginTop" headerText="{detail>title}">
+                <content>
+                  <TextArea value="{
+                    parts: ['detail>data'],
+                    formatter: '.formatJSON'
+                  }" width="100%" rows="5" editable="false" />
+                </content>
+              </Panel>
+            </VBox>
           </VBox>
         </content>
       </Page>

@@ -75,13 +75,18 @@ sap.ui.define([], function () {
       submitPurchaseRequisition: [ROLES.ADMIN, ROLES.REQUESTER, ROLES.BUYER],
       approvePurchaseRequisition: [ROLES.ADMIN, ROLES.BUYER],
       createRFQFromPR: [ROLES.ADMIN, ROLES.BUYER],
+      addVendorToRFQ: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
       issueRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      receiveQuotation: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
+      selectVendor: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
       createPOFromRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      submitPO: [ROLES.ADMIN, ROLES.BUYER],
       approvePO: [ROLES.ADMIN, ROLES.BUYER],
       postUsageDecision: [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR],
       postGoodsReceipt: [ROLES.ADMIN, ROLES.BUYER],
       runThreeWayMatch: [ROLES.ADMIN, ROLES.AP_CLERK],
       createPaymentAdvice: [ROLES.ADMIN, ROLES.AP_CLERK],
+      verifyInvoice: [ROLES.ADMIN, ROLES.FINANCE_MANAGER, ROLES.AP_CLERK],
       executePaymentRun: [ROLES.ADMIN, ROLES.FINANCE_MANAGER]
     }
   };

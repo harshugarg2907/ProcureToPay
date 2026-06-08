@@ -159,12 +159,19 @@ sap.ui.define([
           if (jsonResponse.nextAssignedRole && jsonResponse.nextAssignedRole !== "NONE" && jsonResponse.nextAssignedRole !== "COMPLETED") {
             msg += "\n\nTask forwarded to: " + jsonResponse.nextAssignedRole;
           }
-          MessageBox.success(msg);
+          MessageBox.success(msg, {
+            onClose: function () {
+              if (jsonResponse.nextEntity && jsonResponse.nextId) {
+                Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(jsonResponse.nextEntity) + "/" + encodeURIComponent(jsonResponse.nextId));
+              } else {
+                this.getView().getModel().refresh();
+              }
+            }.bind(this)
+          });
         } else {
           MessageToast.show(successText);
+          this.getView().getModel().refresh();
         }
-
-        this.getView().getModel().refresh();
       } catch (error) {
         MessageBox.error(error.message || "Action failed");
       }

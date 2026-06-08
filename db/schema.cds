@@ -116,6 +116,7 @@ entity RFQItems : cuid, managed {
 entity PurchaseOrders : cuid, managed {
   poNo            : String(30);
   sourceRFQ       : Association to RFQs;
+  rfq_ID          : String(30);
   sourcePR        : Association to PurchaseRequisitions;
   vendor          : Association to Vendors;
   purchasingOrg   : String(10);

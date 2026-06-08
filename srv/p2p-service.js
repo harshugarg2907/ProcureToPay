@@ -173,6 +173,11 @@ module.exports = cds.service.impl(async function () {
     return columns.some((column) => column.func === 'count');
   };
 
+  const getField = (entity, ...candidates) => {
+    if (!entity || !entity.elements) return candidates[0];
+    return candidates.find(c => entity.elements[c]) || candidates[0];
+  };
+
   this.on('READ', CurrentUser, async (req) => {
     const user = await getCurrentUserContext(req);
     if (req.query.SELECT.one) return user;
@@ -284,14 +289,21 @@ module.exports = cds.service.impl(async function () {
     const items = await SELECT.from(PurchaseRequisitionItems).where({ requisition_ID: pr.ID });
     const rfqId = cds.utils.uuid();
     
-    await INSERT.into(RFQs).entries({
-      ID: rfqId, rfqNo: nextId('RFQ'), sourcePR_ID: pr.ID, status: 'DRAFT', assignedRole: 'P2P_VENDOR_MANAGER',
+    const rfqPrField = getField(RFQs, 'requisition_ID', 'sourcePR_ID');
+    const rfqEntry = {
+      ID: rfqId, rfqNo: nextId('RFQ'), status: 'DRAFT', assignedRole: 'P2P_VENDOR_MANAGER',
       purchasingOrg: pr.purchasingOrg, submissionDeadline: today()
-    });
+    };
+    rfqEntry[rfqPrField] = pr.ID;
+    await INSERT.into(RFQs).entries(rfqEntry);
+
     if (items.length > 0) {
-      await INSERT.into(RFQItems).entries(items.map(item => ({
-        ID: cds.utils.uuid(), rfq_ID: rfqId, material_ID: item.material_ID, quantity: item.quantity, uom: item.uom, description: item.shortText
-      })));
+      const rfqItemField = getField(RFQItems, 'rfq_ID', 'sourceRFQ_ID');
+      await INSERT.into(RFQItems).entries(items.map(item => {
+        const entry = { ID: cds.utils.uuid(), material_ID: item.material_ID, quantity: item.quantity, uom: item.uom, description: item.shortText };
+        entry[rfqItemField] = rfqId;
+        return entry;
+      }));
     }
     
     return JSON.stringify({ message: "PR Approved and RFQ Task created", currentEntity: "PurchaseRequisitions", currentId: pr.ID, currentStatus: "APPROVED", nextEntity: "RFQs", nextId: rfqId, nextAssignedRole: "P2P_VENDOR_MANAGER", nextWorkflowStage: "RFQ_CREATION" });
@@ -306,54 +318,81 @@ module.exports = cds.service.impl(async function () {
 
   this.on('addVendorToRFQ', async (req) => {
     const { rfqId, vendorId } = req.data;
-    await INSERT.into(RFQVendors).entries({
-      ID: cds.utils.uuid(), rfq_ID: rfqId, vendor_ID: vendorId, sentStatus: 'Pending', responseStatus: 'Pending', quotedAmount: 0
-    });
+    const rfqVendField = getField(RFQVendors, 'rfq_ID', 'sourceRFQ_ID');
+    const entry = { ID: cds.utils.uuid(), vendor_ID: vendorId, sentStatus: 'Pending', responseStatus: 'Pending', quotedAmount: 0 };
+    entry[rfqVendField] = rfqId;
+    await INSERT.into(RFQVendors).entries(entry);
     await UPDATE(RFQs).set({ status: 'VENDORS_ASSIGNED' }).where({ ID: rfqId });
     return JSON.stringify({ message: "Vendor Added", entity: "RFQs", id: rfqId, status: "VENDORS_ASSIGNED" });
   });
 
   this.on('issueRFQ', async (req) => {
     const { rfqId } = req.data;
-    await UPDATE(RFQVendors).set({ sentStatus: 'Sent' }).where({ rfq_ID: rfqId });
+    const rfqVendField = getField(RFQVendors, 'rfq_ID', 'sourceRFQ_ID');
+    await UPDATE(RFQVendors).set({ sentStatus: 'Sent' }).where({ [rfqVendField]: rfqId });
     await UPDATE(RFQs).set({ status: 'ISSUED' }).where({ ID: rfqId });
     return JSON.stringify({ message: "RFQ Issued", entity: "RFQs", id: rfqId, status: "ISSUED" });
   });
 
   this.on('receiveQuotation', async (req) => {
     const { rfqId, vendorId, quotedAmount, leadTime, remarks } = req.data;
-    await UPDATE(RFQVendors).set({ quotedAmount, leadTime, remarks, responseStatus: 'RECEIVED' }).where({ rfq_ID: rfqId, vendor_ID: vendorId });
+    const rfqVendField = getField(RFQVendors, 'rfq_ID', 'sourceRFQ_ID');
+    await UPDATE(RFQVendors).set({ quotedAmount, leadTime, remarks, responseStatus: 'RECEIVED' }).where({ [rfqVendField]: rfqId, vendor_ID: vendorId });
     await UPDATE(RFQs).set({ status: 'QUOTATIONS_RECEIVED' }).where({ ID: rfqId });
     return JSON.stringify({ message: "Quotation Received", entity: "RFQs", id: rfqId, status: "QUOTATIONS_RECEIVED" });
   });
 
   this.on('selectVendor', async (req) => {
     const { rfqId, vendorId } = req.data;
+    const rfqVendField = getField(RFQVendors, 'rfq_ID', 'sourceRFQ_ID');
     await UPDATE(RFQs).set({ selectedVendor_ID: vendorId, status: 'VENDOR_SELECTED' }).where({ ID: rfqId });
+    await UPDATE(RFQVendors).set({ responseStatus: 'SELECTED' }).where({ [rfqVendField]: rfqId, vendor_ID: vendorId });
     return JSON.stringify({ message: "Vendor Selected", currentEntity: "RFQs", currentId: rfqId, currentStatus: "VENDOR_SELECTED", nextAssignedRole: "P2P_BUYER" });
   });
 
   this.on('createOrGetPOFromRFQ', async (req) => {
-    const { rfqId, deliveryDate, currency, companyCode, purchasingOrg, purchasingGroup } = req.data;
-    const existingPO = await SELECT.one.from(PurchaseOrders).where({ sourceRFQ_ID: rfqId });
-    if (existingPO) return JSON.stringify({ message: "PO exists.", currentEntity: "PurchaseOrders", currentId: existingPO.ID, currentStatus: existingPO.status });
+    try {
+      const { rfqId, deliveryDate, currency, companyCode, purchasingOrg, purchasingGroup } = req.data;
+      if (!rfqId) return req.error(400, "RFQ ID is required.");
+      
+      const poRfqField = getField(PurchaseOrders, 'rfq_ID', 'sourceRFQ_ID');
+      const existingPO = await SELECT.one.from(PurchaseOrders).where({ [poRfqField]: rfqId });
+      if (existingPO) return JSON.stringify({ message: "PO exists.", currentEntity: "PurchaseOrders", currentId: existingPO.ID, currentStatus: existingPO.status });
 
-    const rfq = await SELECT.one.from(RFQs).where({ ID: rfqId });
-    const items = await SELECT.from(RFQItems).where({ rfq_ID: rfqId });
-    const quotes = await SELECT.one.from(RFQVendors).where({ rfq_ID: rfqId, vendor_ID: rfq.selectedVendor_ID });
-    const poId = cds.utils.uuid();
+      const rfq = await SELECT.one.from(RFQs).where({ ID: rfqId });
+      if (!rfq) return req.error(404, "RFQ not found.");
+      
+      const itemRfqField = getField(RFQItems, 'rfq_ID', 'sourceRFQ_ID');
+      const items = await SELECT.from(RFQItems).where({ [itemRfqField]: rfqId }) || [];
+      
+      const quoteRfqField = getField(RFQVendors, 'rfq_ID', 'sourceRFQ_ID');
+      const quotes = await SELECT.one.from(RFQVendors).where({ [quoteRfqField]: rfqId, responseStatus: 'SELECTED' });
+      
+      const poId = cds.utils.uuid();
+      const vendorId = quotes ? quotes.vendor_ID : (rfq.selectedVendor_ID || null);
+      const totalNetValue = quotes && quotes.quotedAmount ? Number(quotes.quotedAmount) : 0;
 
-    await INSERT.into(PurchaseOrders).entries({
-      ID: poId, poNo: nextId('PO'), sourceRFQ_ID: rfqId, vendor_ID: rfq.selectedVendor_ID, status: 'DRAFT', assignedRole: 'P2P_BUYER',
-      currency: currency || 'USD', documentDate: today(), deliveryDate: deliveryDate || today(), companyCode, purchasingOrg, purchasingGroup, totalNetValue: quotes ? quotes.quotedAmount : 0
-    });
-    if (items.length > 0) {
-      await INSERT.into(PurchaseOrderItems).entries(items.map(item => ({
-        ID: cds.utils.uuid(), purchaseOrder_ID: poId, material_ID: item.material_ID, quantity: item.quantity, uom: item.uom
-      })));
+      const poEntry = {
+        ID: poId, poNo: nextId('PO'), vendor_ID: vendorId, status: 'DRAFT', assignedRole: 'P2P_BUYER',
+        currency: currency || 'USD', documentDate: today(), deliveryDate: deliveryDate || today(), companyCode: companyCode || null, purchasingOrg: purchasingOrg || null, purchasingGroup: purchasingGroup || null, totalNetValue: totalNetValue
+      };
+      poEntry[poRfqField] = rfqId;
+      await INSERT.into(PurchaseOrders).entries(poEntry);
+
+      if (items.length > 0) {
+        const poItemPoField = getField(PurchaseOrderItems, 'po_ID', 'purchaseOrder_ID');
+        await INSERT.into(PurchaseOrderItems).entries(items.map(item => {
+          const entry = { ID: cds.utils.uuid(), material_ID: item.material_ID, quantity: item.quantity, uom: item.uom };
+          entry[poItemPoField] = poId;
+          return entry;
+        }));
+      }
+      await UPDATE(RFQs).set({ status: 'PO_CREATED', assignedRole: 'COMPLETED' }).where({ ID: rfqId });
+      return JSON.stringify({ message: "PO Task created", currentEntity: "RFQs", currentId: rfqId, currentStatus: "PO_CREATED", nextEntity: "PurchaseOrders", nextId: poId, nextAssignedRole: "P2P_BUYER", nextWorkflowStage: "PO_CREATION" });
+    } catch (error) {
+      console.error("Create PO Error:", error);
+      return req.error(500, "Failed to create PO: " + error.message);
     }
-    await UPDATE(RFQs).set({ status: 'PO_CREATED', assignedRole: 'COMPLETED' }).where({ ID: rfqId });
-    return JSON.stringify({ message: "PO Task created", currentEntity: "RFQs", currentId: rfqId, currentStatus: "PO_CREATED", nextEntity: "PurchaseOrders", nextId: poId, nextAssignedRole: "P2P_BUYER", nextWorkflowStage: "PO_CREATION" });
   });
 
   this.on('submitPO', async (req) => {
@@ -369,11 +408,14 @@ module.exports = cds.service.impl(async function () {
 
     // Auto-Forward: Create GR Task
     const grId = cds.utils.uuid();
-    await INSERT.into(GoodsReceipts).entries({
-      ID: grId, grNo: nextId('GR'), purchaseOrder_ID: po.ID, 
+    const grPoField = getField(GoodsReceipts, 'po_ID', 'purchaseOrder_ID');
+    const grEntry = {
+      ID: grId, grNo: nextId('GR'), 
       postingDate: today(), documentDate: today(), 
-      plant: '1000', storageLocation: 'RM01', totalGRValue: po.totalNetValue || 0, status: 'DRAFT', assignedRole: 'P2P_AP_CLERK'
-    });
+      plant: '1000', storageLocation: 'RM01', totalValue: po.totalNetValue || 0, status: 'DRAFT', assignedRole: 'P2P_AP_CLERK'
+    };
+    grEntry[grPoField] = po.ID;
+    await INSERT.into(GoodsReceipts).entries(grEntry);
     
     return JSON.stringify({ message: "PO Approved and Goods Receipt task created", currentEntity: "PurchaseOrders", currentId: po.ID, currentStatus: "APPROVED", nextEntity: "GoodsReceipts", nextId: grId, nextAssignedRole: "P2P_AP_CLERK", nextWorkflowStage: "GOODS_RECEIPT" });
   });
@@ -391,27 +433,33 @@ module.exports = cds.service.impl(async function () {
 
     // Auto-Forward: Create QC Task
     const lotId = cds.utils.uuid();
-    await INSERT.into(InspectionLots).entries({
-      ID: lotId, inspectionLotNo: nextId('LOT'), purchaseOrder_ID: gr.purchaseOrder_ID, status: 'OPEN', assignedRole: 'P2P_QUALITY_INSPECTOR'
-    });
-    await UPDATE(GoodsReceipts).set({ inspectionLot_ID: lotId }).where({ ID: grId });
+    const lotPoField = getField(InspectionLots, 'po_ID', 'purchaseOrder_ID');
+    const lotEntry = { ID: lotId, inspectionLotNo: nextId('LOT'), status: 'OPEN', assignedRole: 'P2P_QUALITY_INSPECTOR' };
+    lotEntry[lotPoField] = gr.po_ID || gr.purchaseOrder_ID;
+    await INSERT.into(InspectionLots).entries(lotEntry);
+
+    const grLotField = getField(GoodsReceipts, 'inspectionLot_ID', 'lot_ID');
+    await UPDATE(GoodsReceipts).set({ [grLotField]: lotId }).where({ ID: grId });
     
     return JSON.stringify({ message: "Goods Receipt Posted and QC Task created", currentEntity: "GoodsReceipts", currentId: grId, currentStatus: "POSTED", nextEntity: "InspectionLots", nextId: lotId, nextAssignedRole: "P2P_QUALITY_INSPECTOR", nextWorkflowStage: "QC_INSPECTION" });
   });
 
   this.on('postUsageDecision', async (req) => {
-    const { lotId, acceptedQuantity, rejectedQuantity, usageDecisionCode } = req.data;
+    const { lotId, acceptedQuantity, rejectedQuantity, usageDecisionCode, rejectionReason } = req.data;
     const lot = await SELECT.one.from(InspectionLots).where({ ID: lotId });
     
-    const status = (rejectedQuantity > 0) ? 'FAILED' : 'PASSED';
-    await UPDATE(InspectionLots).set({ acceptedQuantity, rejectedQuantity, usageDecisionCode, status, assignedRole: 'COMPLETED' }).where({ ID: lot.ID });
+    const status = (usageDecisionCode === 'FAIL' || Number(rejectedQuantity) > 0) ? 'FAILED' : 'PASSED';
+    await UPDATE(InspectionLots).set({ acceptedQuantity, rejectedQuantity, usageDecisionCode, rejectionReason, status, assignedRole: 'COMPLETED' }).where({ ID: lot.ID });
 
     if (status === 'PASSED') {
       const invId = cds.utils.uuid();
-      await INSERT.into(Invoices).entries({
-        ID: invId, invoiceNo: nextId('INV'), purchaseOrder_ID: lot.purchaseOrder_ID, status: 'DRAFT', assignedRole: 'P2P_FINANCE_MANAGER',
+      const invPoField = getField(Invoices, 'po_ID', 'purchaseOrder_ID');
+      const invEntry = {
+        ID: invId, invoiceNo: nextId('INV'), status: 'DRAFT', assignedRole: 'P2P_FINANCE_MANAGER',
         invoiceDate: today(), postingDate: today(), dueDate: today(), matchStatus: 'Pending'
-      });
+      };
+      invEntry[invPoField] = lot.po_ID || lot.purchaseOrder_ID;
+      await INSERT.into(Invoices).entries(invEntry);
       return JSON.stringify({ message: "QC Passed and Invoice Task created", currentEntity: "InspectionLots", currentId: lot.ID, currentStatus: "PASSED", nextEntity: "Invoices", nextId: invId, nextAssignedRole: "P2P_FINANCE_MANAGER", nextWorkflowStage: "INVOICE_VERIFICATION" });
     }
     

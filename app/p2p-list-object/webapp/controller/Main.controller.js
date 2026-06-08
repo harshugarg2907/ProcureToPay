@@ -11,11 +11,13 @@ sap.ui.define([
   "sap/m/MessageToast",
   "sap/m/Text",
   "sap/m/VBox",
+  "sap/m/Select",
+  "sap/ui/core/Item",
   "p2p/common/Auth",
   "p2p/common/Header",
   "p2p/common/RoleAccess",
   "p2p/common/Navigation"
-], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Auth, Header, RoleAccess, Navigation) {
+], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Select, Item, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   var ENTITY_CONFIG = {
@@ -25,7 +27,7 @@ sap.ui.define([
     RFQs: { title: "RFQs", search: "Search RFQ number or status", fields: ["rfqNo", "rfqType", "purchasingOrg", "purchasingGroup", "submissionDeadline", "status"], columns: [["RFQ", "rfqNo"], ["Type", "rfqType"], ["Purchasing Org", "purchasingOrg"], ["Deadline", "submissionDeadline"], ["Status", "status"]] },
     PurchaseOrders: { title: "Purchase Orders", search: "Search PO number, status, vendor", fields: ["poNo", "purchasingOrg", "purchasingGroup", "companyCode", "currency", "documentDate", "deliveryDate", "status", "totalNetValue"], columns: [["PO", "poNo"], ["Company Code", "companyCode"], ["Currency", "currency"], ["Delivery Date", "deliveryDate"], ["Status", "status"], ["Net Value", "totalNetValue"]] },
     InspectionLots: { title: "Inspection Lots", search: "Search lot number or status", fields: ["inspectionLotNo", "inspectionType", "lotQuantity", "acceptedQuantity", "rejectedQuantity", "usageDecisionCode", "rejectionReason", "status"], columns: [["Lot", "inspectionLotNo"], ["Type", "inspectionType"], ["Lot Qty", "lotQuantity"], ["Accepted", "acceptedQuantity"], ["Rejected", "rejectedQuantity"], ["Status", "status"]] },
-    GoodsReceipts: { title: "Goods Receipts", search: "Search GR number, status, plant", fields: ["grNo", "postingDate", "documentDate", "plant", "storageLocation", "batch", "totalGRValue", "status"], columns: [["GR", "grNo"], ["Posting Date", "postingDate"], ["Plant", "plant"], ["Storage", "storageLocation"], ["Value", "totalGRValue"], ["Status", "status"]] },
+    GoodsReceipts: { title: "Goods Receipts", search: "Search GR number, status, plant", fields: ["grNo", "postingDate", "documentDate", "plant", "storageLocation", "batch", "totalValue", "status"], columns: [["GR", "grNo"], ["Posting Date", "postingDate"], ["Plant", "plant"], ["Storage", "storageLocation"], ["Value", "totalValue"], ["Status", "status"]] },
     Invoices: { title: "Supplier Invoices", search: "Search invoice number or status", fields: ["invoiceNo", "invoiceDate", "postingDate", "currency", "paymentTerms", "netAmount", "taxAmount", "totalPayable", "matchStatus", "status"], columns: [["Invoice", "invoiceNo"], ["Invoice Date", "invoiceDate"], ["Currency", "currency"], ["Payable", "totalPayable"], ["Match", "matchStatus"], ["Status", "status"]] },
     PaymentRuns: { title: "Payment Runs", search: "Search payment run ID, status, company code", fields: ["paymentRunId", "runDate", "companyCode", "paymentMethod", "nextPaymentDate", "status", "totalPaymentAmount"], columns: [["Run", "paymentRunId"], ["Run Date", "runDate"], ["Company Code", "companyCode"], ["Method", "paymentMethod"], ["Amount", "totalPaymentAmount"], ["Status", "status"]] }
   };
@@ -39,6 +41,19 @@ sap.ui.define([
     GoodsReceipts: ["grNo"],
     Invoices: ["invoiceNo"],
     PaymentRuns: ["paymentRunId"]
+  };
+
+  var STATUS_OPTIONS = {
+    Users: ["Active", "Inactive"],
+    Vendors: ["Active", "Blocked"],
+    Materials: ["Active", "Blocked"],
+    PurchaseRequisitions: ["CREATED", "SUBMITTED", "APPROVED", "REJECTED"],
+    RFQs: ["DRAFT", "VENDORS_ASSIGNED", "ISSUED", "QUOTATIONS_RECEIVED", "VENDOR_SELECTED", "PO_CREATED"],
+    PurchaseOrders: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "SENT", "RECEIVED"],
+    InspectionLots: ["OPEN", "PASSED", "FAILED"],
+    GoodsReceipts: ["DRAFT", "POSTED", "REVERSED"],
+    Invoices: ["DRAFT", "VERIFIED", "PAID"],
+    PaymentRuns: ["DRAFT", "PAYMENT_POSTED", "FAILED"]
   };
 
   return Controller.extend("sap.cap.p2p.listobject.controller.Main", {
@@ -152,10 +167,33 @@ sap.ui.define([
       var box = new VBox({ class: "sapUiSmallMargin p2pDialogForm", width: "24rem" });
 
       this._editableFields().forEach(function (field) {
-        inputs[field] = new Input({ value: data[field] || "" });
+        if (field === "status" || field === "matchStatus" || field === "usageDecisionCode") {
+          var select = new Select({ width: "100%", selectedKey: data[field] || "" });
+          var statuses = [];
+          if (field === "matchStatus") {
+            statuses = ["Pending", "Matched", "Mismatch"];
+          } else if (field === "usageDecisionCode") {
+            statuses = ["", "PASS", "FAIL"];
+          } else {
+            statuses = STATUS_OPTIONS[this._entity] || ["Active", "Inactive"];
+          }
+          if (data[field] && statuses.indexOf(data[field]) === -1) {
+            statuses = statuses.slice();
+            statuses.push(data[field]);
+          }
+          statuses.forEach(function(s) {
+            var text = s;
+            if (s === "PASS") text = "Accept";
+            if (s === "FAIL") text = "Reject";
+            select.addItem(new Item({ key: s, text: text }));
+          });
+          inputs[field] = select;
+        } else {
+          inputs[field] = new Input({ value: data[field] || "" });
+        }
         box.addItem(new Label({ text: field }));
         box.addItem(inputs[field]);
-      });
+      }.bind(this));
 
       var dialog = new Dialog({
         title: mode + " " + this._config.title,
@@ -166,7 +204,7 @@ sap.ui.define([
           press: async function () {
             var payload = {};
             this._editableFields().forEach(function (field) {
-              var value = inputs[field].getValue();
+              var value = (field === "status" || field === "matchStatus" || field === "usageDecisionCode") ? inputs[field].getSelectedKey() : inputs[field].getValue();
               if (value !== "") {
                 payload[field] = value;
               }
