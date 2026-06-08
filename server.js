@@ -6,7 +6,6 @@ const uiApps = [
   "common",
   "dashboard",
   "home",
-  "login-page",
   "p2p-analytical",
   "p2p-list-object",
   "p2p-object-pages",
@@ -18,7 +17,7 @@ const uiApps = [
 
 cds.on("bootstrap", (app) => {
   app.get("/", (_req, res) => {
-    res.redirect("/login-page/index.html");
+    res.redirect("/p2p-ui/index.html");
   });
 
   uiApps.forEach((appName) => {
