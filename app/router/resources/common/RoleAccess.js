@@ -75,13 +75,18 @@ sap.ui.define([], function () {
       submitPurchaseRequisition: [ROLES.ADMIN, ROLES.REQUESTER, ROLES.BUYER],
       approvePurchaseRequisition: [ROLES.ADMIN, ROLES.BUYER],
       createRFQFromPR: [ROLES.ADMIN, ROLES.BUYER],
+      addVendorToRFQ: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
       issueRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      receiveQuotation: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
+      selectVendor: [ROLES.ADMIN, ROLES.BUYER, ROLES.VENDOR_MANAGER],
       createPOFromRFQ: [ROLES.ADMIN, ROLES.BUYER],
+      submitPO: [ROLES.ADMIN, ROLES.BUYER],
       approvePO: [ROLES.ADMIN, ROLES.BUYER],
       postUsageDecision: [ROLES.ADMIN, ROLES.QUALITY_INSPECTOR],
       postGoodsReceipt: [ROLES.ADMIN, ROLES.BUYER],
       runThreeWayMatch: [ROLES.ADMIN, ROLES.AP_CLERK],
       createPaymentAdvice: [ROLES.ADMIN, ROLES.AP_CLERK],
+      verifyInvoice: [ROLES.ADMIN, ROLES.FINANCE_MANAGER, ROLES.AP_CLERK],
       executePaymentRun: [ROLES.ADMIN, ROLES.FINANCE_MANAGER]
     }
   };
@@ -113,7 +118,9 @@ sap.ui.define([], function () {
     HOME_TILES: HOME_TILES,
 
     isRouteAllowed: function (path, role) {
-      return includes(ROLE_PERMISSIONS.ROUTES[(path || "").split("?")[0]] || [], role);
+      var rawPath = (path || "").split("?")[0];
+      var cleanPath = rawPath.replace("/webapp/index.html", "/index.html");
+      return includes(ROLE_PERMISSIONS.ROUTES[cleanPath] || ROLE_PERMISSIONS.ROUTES[rawPath] || [], role);
     },
 
     canReadEntity: function (entity, role) {
@@ -149,7 +156,8 @@ sap.ui.define([], function () {
 
       if (!this.isRouteAllowed(path, role)) {
         window.alert("You do not have permission to access this page.");
-        window.location.href = "/home/index.html";
+        var homePath = window.location.pathname.indexOf("/webapp/") !== -1 ? "/home/webapp/index.html" : "/home/index.html";
+        window.location.href = homePath;
         return;
       }
 
@@ -157,9 +165,15 @@ sap.ui.define([], function () {
     },
 
     getHomeTiles: function (role) {
+      var inWebapp = window.location.pathname.indexOf("/webapp/") !== -1;
       return HOME_TILES.filter(function (tile) {
         return role === ROLES.ADMIN || this.canReadEntity(tile.entity, role);
-      }, this);
+      }, this).map(function (tile) {
+        return {
+          title: tile.title, description: tile.description, icon: tile.icon, entity: tile.entity,
+          path: inWebapp ? tile.path.replace("/index.html", "/webapp/index.html") : tile.path
+        };
+      });
     }
   };
 });
