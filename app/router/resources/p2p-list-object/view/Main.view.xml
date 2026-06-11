@@ -1,0 +1,28 @@
+<mvc:View
+  controllerName="sap.cap.p2p.listobject.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m">
+  <App>
+    <pages>
+      <Page id="mainPage" title="{list>/title}" enableScrolling="true">
+        <content>
+          <VBox class="sapUiResponsiveContentPadding" renderType="Bare">
+            <Panel class="p2pCard">
+              <headerToolbar>
+                <OverflowToolbar>
+                  <Title text="{list>/title}" level="H2" />
+                  <ToolbarSpacer />
+                  <Button text="Create" icon="sap-icon://add" type="Emphasized" visible="{list>/canCreate}" press=".onCreate" />
+                </OverflowToolbar>
+              </headerToolbar>
+              <content>
+                <SearchField width="100%" placeholder="{list>/searchPlaceholder}" liveChange=".onSearch" class="sapUiSmallMarginBottom" />
+                <Table id="entityTable" class="p2pResponsiveTable" growing="true" mode="SingleSelectMaster" selectionChange=".onItemSelected" />
+              </content>
+            </Panel>
+          </VBox>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>

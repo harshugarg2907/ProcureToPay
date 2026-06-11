@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.GoodsReceipt">
+  <Page title="Goods Receipt" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/GoodsReceipts}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Goods Receipts" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="GR No." /></Column>
+          <Column><Text text="PO No." /></Column>
+          <Column><Text text="Status" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{grNo}" />
+              <Text text="{purchaseOrder/poNo}" />
+              <Text text="{status}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

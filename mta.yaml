@@ -36,6 +36,7 @@ modules:
     requires:
       - name: sap-cap-p2p-db
       - name: sap-cap-p2p-auth
+      - name: sap-cap-p2p-destination
   - name: sap-cap-p2p
     type: approuter.nodejs
     path: app/router
@@ -74,30 +75,34 @@ resources:
           redirect-uris:
             - https://*~{app-api/app-uri}/**
         role-collections:
-          - name: 'Admin (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+          - name: 'P2P_ADMIN'
+            description: 'Full Procure-to-Pay administration'
             role-template-references:
-              - '$XSAPPNAME.Admin'
-          - name: 'ProcurementOfficer (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+              - '$XSAPPNAME.P2P_ADMIN'
+          - name: 'P2P_BUYER'
+            description: 'Buyer access for RFQs and purchase orders'
             role-template-references:
-              - '$XSAPPNAME.ProcurementOfficer'
-          - name: 'FinanceOfficer (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+              - '$XSAPPNAME.P2P_BUYER'
+          - name: 'P2P_REQUESTER'
+            description: 'Purchase requisition requester access'
             role-template-references:
-              - '$XSAPPNAME.FinanceOfficer'
-          - name: 'Viewer (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+              - '$XSAPPNAME.P2P_REQUESTER'
+          - name: 'P2P_VENDOR_MANAGER'
+            description: 'Vendor and supplier master data access'
             role-template-references:
-              - '$XSAPPNAME.Viewer'
-          - name: 'QCInspector (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+              - '$XSAPPNAME.P2P_VENDOR_MANAGER'
+          - name: 'P2P_QUALITY_INSPECTOR'
+            description: 'Quality inspection access'
             role-template-references:
-              - '$XSAPPNAME.QCInspector'
-          - name: 'GoodsReceiptOfficer (sap-cap-p2p ${org}-${space})'
-            description: 'generated'
+              - '$XSAPPNAME.P2P_QUALITY_INSPECTOR'
+          - name: 'P2P_AP_CLERK'
+            description: 'Accounts payable invoice verification access'
             role-template-references:
-              - '$XSAPPNAME.GoodsReceiptOfficer'
+              - '$XSAPPNAME.P2P_AP_CLERK'
+          - name: 'P2P_FINANCE_MANAGER'
+            description: 'Payment processing and finance approval access'
+            role-template-references:
+              - '$XSAPPNAME.P2P_FINANCE_MANAGER'
     requires:
       - name: app-api
 
@@ -106,3 +111,37 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
+
+  - name: sap-cap-p2p-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+        init_data:
+          instance:
+            destinations:
+              - Name: sap-cap-p2p-srv-api
+                URL: ~{srv-api/srv-url}
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+            existing_destinations_policy: update
+    requires:
+      - name: srv-api
+
+  - name: sap-cap-p2p-html5-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  - name: sap-cap-p2p-html5-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime

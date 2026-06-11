@@ -4,8 +4,8 @@ sap.ui.define([
 ], function (MessageBox, RoleAccess) {
   "use strict";
 
-  var LOGIN_PATH = "/login-page/index.html";
   var HOME_PATH = "/home/index.html";
+  var LOGOUT_PATH = "/logout";
   var STORAGE_KEYS = [
     "loggedInUser",
     "userRole",
@@ -14,6 +14,7 @@ sap.ui.define([
     "companyCode",
     "costCenter"
   ];
+  var sessionPromise = null;
 
   function currentPath() {
     return window.location.pathname.replace(/\/webapp\//, "/");
@@ -24,6 +25,7 @@ sap.ui.define([
       localStorage.removeItem(key);
     });
     sessionStorage.removeItem("p2p.auth");
+    sessionPromise = null;
   }
 
   function getSession() {
@@ -37,8 +39,40 @@ sap.ui.define([
     };
   }
 
-  function redirectToLogin() {
-    window.location.href = LOGIN_PATH;
+  function primaryRole(user) {
+    var roles = user && Array.isArray(user.roles)
+      ? user.roles.map(function (role) {
+        return role.roleName || role;
+      }).filter(Boolean)
+      : [];
+
+    return roles[0] || "";
+  }
+
+  function saveSession(user) {
+    var role = primaryRole(user);
+
+    localStorage.setItem("loggedInUser", user.userId || "");
+    localStorage.setItem("userRole", role);
+    localStorage.setItem("userFullName", user.fullName || user.userId || "");
+    localStorage.setItem("userEmail", user.email || "");
+    localStorage.setItem("companyCode", user.companyCode || "");
+    localStorage.setItem("costCenter", user.costCenter || "");
+    return getSession();
+  }
+
+  async function fetchSession() {
+    var response = await fetch("/odata/v4/p2p/getCurrentUser", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to read BTP user roles.");
+    }
+
+    return saveSession(await response.json());
   }
 
   function showDeniedAndRedirect(message) {
@@ -47,32 +81,34 @@ sap.ui.define([
         window.location.href = HOME_PATH;
       }
     });
-    setTimeout(function () {
-      window.location.href = HOME_PATH;
-    }, 1800);
   }
 
   return {
-    LOGIN_PATH: LOGIN_PATH,
     HOME_PATH: HOME_PATH,
+    LOGOUT_PATH: LOGOUT_PATH,
     STORAGE_KEYS: STORAGE_KEYS,
     getSession: getSession,
     clearSession: clearSession,
 
+    loadSession: function () {
+      if (!sessionPromise) {
+        sessionPromise = fetchSession().catch(function (error) {
+          clearSession();
+          throw error;
+        });
+      }
+      return sessionPromise;
+    },
+
     isLoggedIn: function () {
-      var session = getSession();
-      return !!(session.userId && session.role);
+      return true;
     },
 
     requireAuth: function (path) {
       var session = getSession();
+      var route = path || currentPath();
 
-      if (!session.userId || !session.role) {
-        redirectToLogin();
-        return false;
-      }
-
-      if (!RoleAccess.isRouteAllowed(path || currentPath(), session.role)) {
+      if (session.role && !RoleAccess.isRouteAllowed(route, session.role)) {
         showDeniedAndRedirect("You do not have permission to access this page.");
         return false;
       }
@@ -83,12 +119,7 @@ sap.ui.define([
     navigateIfAllowed: function (path) {
       var session = getSession();
 
-      if (!session.role) {
-        redirectToLogin();
-        return;
-      }
-
-      if (!RoleAccess.isRouteAllowed(path, session.role)) {
+      if (session.role && !RoleAccess.isRouteAllowed(path, session.role)) {
         showDeniedAndRedirect("You do not have permission to access this page.");
         return;
       }
@@ -101,20 +132,12 @@ sap.ui.define([
     },
 
     ensureObjectAccess: function () {
-      var session = getSession();
-      var allowedRoles = RoleAccess.ROUTE_PERMISSIONS["/p2p-object-pages/index.html"] || [];
-
-      if (allowedRoles.indexOf(session.role) === -1) {
-        MessageBox.error("You do not have permission to view details.");
-        return false;
-      }
-
-      return true;
+      return this.requireAuth("/p2p-object-pages/index.html");
     },
 
     logout: function () {
       clearSession();
-      window.location.href = LOGIN_PATH;
+      window.location.href = LOGOUT_PATH;
     }
   };
 });

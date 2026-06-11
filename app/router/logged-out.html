@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signed Out | Procure To Pay</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #12213a;
+      background: linear-gradient(135deg, #f8fbff, #eef7ff 55%, #eefcf8);
+    }
+
+    main {
+      width: min(560px, 100%);
+      padding: 36px;
+      border: 1px solid #dbe7f3;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 20px 54px rgba(18, 33, 58, 0.14);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+    }
+
+    p {
+      margin: 0 0 26px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    a {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border-radius: 8px;
+      color: #fff;
+      background: #0064d9;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>You are signed out</h1>
+    <p>Your local app session was cleared. Use SAP BTP authentication to open the app again.</p>
+    <a href="/home/index.html">Open Procure To Pay</a>
+  </main>
+</body>
+</html>

@@ -17,7 +17,7 @@ This file lists the demo users available in the Procure-to-Pay application and t
 
 ## How to use
 
-1. Open the login page at `http://localhost:4004/p2p-ui/index.html` or the CAP launch page.
+1. Open the login page at `http://localhost:4004/home/index.html` or the CAP launch page.
 2. Enter one of the `Username` values from the table.
 3. Enter the matching demo password or any value.
 4. Click **Log On**.

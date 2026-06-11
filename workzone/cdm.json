@@ -1,0 +1,314 @@
+{
+  "_version": "3.0.0",
+  "identification": {
+    "id": "sap.cap.p2p.workzone",
+    "title": "Procure to Pay",
+    "entityType": "businessapp"
+  },
+  "payload": {
+    "catalogs": [
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.catalog",
+          "title": "Procure to Pay"
+        },
+        "payload": {
+          "viz": [
+            "sap.cap.p2p.vendor.display",
+            "sap.cap.p2p.material.display",
+            "sap.cap.p2p.pr.display",
+            "sap.cap.p2p.rfq.display",
+            "sap.cap.p2p.po.display",
+            "sap.cap.p2p.quality.display",
+            "sap.cap.p2p.gr.display",
+            "sap.cap.p2p.invoice.display",
+            "sap.cap.p2p.payment.display"
+          ]
+        }
+      }
+    ],
+    "groups": [
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.group",
+          "title": "Procure to Pay"
+        },
+        "payload": {
+          "viz": [
+            "sap.cap.p2p.pr.display",
+            "sap.cap.p2p.rfq.display",
+            "sap.cap.p2p.po.display",
+            "sap.cap.p2p.invoice.display",
+            "sap.cap.p2p.payment.display"
+          ]
+        }
+      }
+    ],
+    "sites": [
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.site",
+          "title": "Procure to Pay Launchpad"
+        },
+        "payload": {
+          "groups": [
+            "sap.cap.p2p.group"
+          ],
+          "catalogs": [
+            "sap.cap.p2p.catalog"
+          ]
+        }
+      }
+    ],
+    "applications": [
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.vendor",
+          "title": "Vendor Management"
+        },
+        "payload": {
+          "semanticObject": "P2PVendor",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=Vendors"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.material",
+          "title": "Material Management"
+        },
+        "payload": {
+          "semanticObject": "P2PMaterial",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=Materials"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.pr",
+          "title": "Purchase Requisitions"
+        },
+        "payload": {
+          "semanticObject": "P2PRequisition",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=PurchaseRequisitions"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.rfq",
+          "title": "RFQ Management"
+        },
+        "payload": {
+          "semanticObject": "P2PRFQ",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=RFQs"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.po",
+          "title": "Purchase Orders"
+        },
+        "payload": {
+          "semanticObject": "P2POrder",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=PurchaseOrders"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.quality",
+          "title": "Quality Inspection"
+        },
+        "payload": {
+          "semanticObject": "P2PQuality",
+          "action": "inspect",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=InspectionLots"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.gr",
+          "title": "Goods Receipts"
+        },
+        "payload": {
+          "semanticObject": "P2PGoodsReceipt",
+          "action": "manage",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=GoodsReceipts"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.invoice",
+          "title": "Invoice Verification"
+        },
+        "payload": {
+          "semanticObject": "P2PInvoice",
+          "action": "verify",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=Invoices"
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.payment",
+          "title": "Payment Processing"
+        },
+        "payload": {
+          "semanticObject": "P2PPayment",
+          "action": "process",
+          "applicationType": "URL",
+          "url": "/p2p-list-object/index.html?entity=PaymentRuns"
+        }
+      }
+    ],
+    "viz": [
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.vendor.display",
+          "title": "Vendor Management"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PVendor",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.material.display",
+          "title": "Material Management"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PMaterial",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.pr.display",
+          "title": "Purchase Requisitions"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PRequisition",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.rfq.display",
+          "title": "RFQ Management"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PRFQ",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.po.display",
+          "title": "Purchase Orders"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2POrder",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.quality.display",
+          "title": "Quality Inspection"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PQuality",
+            "action": "inspect"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.gr.display",
+          "title": "Goods Receipts"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PGoodsReceipt",
+            "action": "manage"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.invoice.display",
+          "title": "Invoice Verification"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PInvoice",
+            "action": "verify"
+          }
+        }
+      },
+      {
+        "_version": "3.0.0",
+        "identification": {
+          "id": "sap.cap.p2p.payment.display",
+          "title": "Payment Processing"
+        },
+        "payload": {
+          "vizType": "sap.ushell.StaticAppLauncher",
+          "target": {
+            "semanticObject": "P2PPayment",
+            "action": "process"
+          }
+        }
+      }
+    ]
+  }
+}

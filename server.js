@@ -6,7 +6,6 @@ const uiApps = [
   "common",
   "dashboard",
   "home",
-  "login-page",
   "p2p-analytical",
   "p2p-list-object",
   "p2p-object-pages",
@@ -18,12 +17,16 @@ const uiApps = [
 
 cds.on("bootstrap", (app) => {
   app.get("/", (_req, res) => {
-    res.redirect("/login-page/index.html");
+    res.redirect("/home/webapp/index.html");
   });
 
   uiApps.forEach((appName) => {
     app.use(
       `/${appName}`,
+      express.static(path.join(__dirname, "app", appName, "webapp"))
+    );
+    app.use(
+      `/${appName}/webapp`,
       express.static(path.join(__dirname, "app", appName, "webapp"))
     );
   });

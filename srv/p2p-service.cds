@@ -18,7 +18,7 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity Users as projection on db.Users {
@@ -33,21 +33,6 @@ service P2PService @(path: '/odata/v4/p2p') {
     companyCode,
     costCenter,
     language,
-    status
-  };
-
-  @restrict: [
-    { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
-  ]
-  entity UserRoles as projection on db.UserRoles {
-    key ID,
-    createdAt,
-    createdBy,
-    modifiedAt,
-    modifiedBy,
-    user,
-    roleName,
-    module,
     status
   };
 
@@ -70,21 +55,21 @@ service P2PService @(path: '/odata/v4/p2p') {
   }
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_VENDOR_MANAGER', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN', 'P2P_VENDOR_MANAGER'] }
   ]
   entity Vendors as projection on db.Vendors;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_VENDOR_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE', 'DELETE'], to: ['P2P_ADMIN', 'P2P_BUYER'] }
   ]
   entity Materials as projection on db.Materials;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_REQUESTER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_REQUESTER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity PurchaseRequisitions as projection on db.PurchaseRequisitions {
     key ID,
@@ -102,9 +87,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity RFQs as projection on db.RFQs {
     key ID,
@@ -123,9 +108,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'ProcurementOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'ProcurementOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity PurchaseOrders as projection on db.PurchaseOrders {
@@ -148,9 +133,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'QCInspector', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'QCInspector'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_QUALITY_INSPECTOR', 'P2P_BUYER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_QUALITY_INSPECTOR'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity InspectionLots as projection on db.InspectionLots {
@@ -173,9 +158,9 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'GoodsReceiptOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'GoodsReceiptOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_BUYER', 'P2P_AP_CLERK', 'P2P_QUALITY_INSPECTOR'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_BUYER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity GoodsReceipts as projection on db.GoodsReceipts {
     key ID,
@@ -196,17 +181,17 @@ service P2PService @(path: '/odata/v4/p2p') {
   };
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'FinanceOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   @cds.redirection.target
   entity Invoices as projection on db.Invoices;
 
   @restrict: [
-    { grant: ['READ'], to: ['Admin', 'FinanceOfficer', 'Viewer'] },
-    { grant: ['CREATE', 'UPDATE'], to: ['Admin', 'FinanceOfficer'] },
-    { grant: ['DELETE'], to: ['Admin'] }
+    { grant: ['READ'], to: ['P2P_ADMIN', 'P2P_AP_CLERK', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['CREATE', 'UPDATE'], to: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER'] },
+    { grant: ['DELETE'], to: ['P2P_ADMIN'] }
   ]
   entity PaymentRuns as projection on db.PaymentRuns {
     key ID,
@@ -225,19 +210,30 @@ service P2PService @(path: '/odata/v4/p2p') {
 
   action getCurrentUser(userId: String) returns CurrentUserContext;
   action submitPurchaseRequisition(prId: UUID) returns String;
-  action approvePurchaseRequisition(prId: UUID) returns String;
-  action createRFQFromPR(prId: UUID) returns String;
+  action approvePurchaseRequisition(prId: UUID, comments: String) returns String;
+  action rejectPurchaseRequisition(prId: UUID, comments: String) returns String;
+  
+  action addVendorToRFQ(rfqId: UUID, vendorId: String) returns String;
   action issueRFQ(rfqId: UUID) returns String;
-  action createPOFromRFQ(rfqId: UUID, vendorId: UUID) returns String;
-  action approvePO(poId: UUID) returns String;
-  action postUsageDecision(lotId: UUID) returns String;
-  action postGoodsReceipt(lotId: UUID) returns String;
-  action runThreeWayMatch(invoiceId: UUID) returns String;
-  action createPaymentAdvice(invoiceId: UUID) returns String;
+  action receiveQuotation(rfqId: UUID, vendorId: String, quotedAmount: Decimal, leadTime: Integer, remarks: String) returns String;
+  action selectVendor(rfqId: UUID, vendorId: String) returns String;
+  action createOrGetPOFromRFQ(rfqId: UUID, deliveryDate: Date, currency: String, companyCode: String, purchasingOrg: String, purchasingGroup: String) returns String;
+  
+  action submitPO(poId: UUID) returns String;
+  action approvePO(poId: UUID, comments: String) returns String;
+  action rejectPO(poId: UUID, comments: String) returns String;
+  
+  action postGoodsReceipt(grId: UUID, postingDate: Date, documentDate: Date, plant: String, storageLocation: String, batch: String, receivedQuantity: Decimal) returns String;
+  action postUsageDecision(lotId: UUID, acceptedQuantity: Decimal, rejectedQuantity: Decimal, usageDecisionCode: String) returns String;
+  
+  action verifyInvoice(invoiceId: UUID) returns String;
   action executePaymentRun(paymentRunId: UUID) returns String;
 
   @readonly
+  @requires: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER']
   entity POStatusAnalytics as select from db.PurchaseOrders { key status, count(*) as total: Integer } group by status;
+
   @readonly
+  @requires: ['P2P_ADMIN', 'P2P_FINANCE_MANAGER']
   entity VendorSpendAnalytics as select from db.PurchaseOrders { key vendor.name as vendorName, sum(totalNetValue) as totalSpend: Decimal(15,2) } group by vendor.name;
 }

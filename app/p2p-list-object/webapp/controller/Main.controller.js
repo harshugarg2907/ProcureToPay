@@ -11,10 +11,14 @@ sap.ui.define([
   "sap/m/MessageToast",
   "sap/m/Text",
   "sap/m/VBox",
+  "sap/m/Select",
+  "sap/ui/core/Item",
+  "sap/m/DatePicker",
   "p2p/common/Auth",
   "p2p/common/Header",
-  "p2p/common/RoleAccess"
-], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Auth, Header, RoleAccess) {
+  "p2p/common/RoleAccess",
+  "p2p/common/Navigation"
+], function (Controller, JSONModel, Button, Column, ColumnListItem, Dialog, Input, Label, MessageBox, MessageToast, Text, VBox, Select, Item, DatePicker, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   var ENTITY_CONFIG = {
@@ -24,14 +28,45 @@ sap.ui.define([
     RFQs: { title: "RFQs", search: "Search RFQ number or status", fields: ["rfqNo", "rfqType", "purchasingOrg", "purchasingGroup", "submissionDeadline", "status"], columns: [["RFQ", "rfqNo"], ["Type", "rfqType"], ["Purchasing Org", "purchasingOrg"], ["Deadline", "submissionDeadline"], ["Status", "status"]] },
     PurchaseOrders: { title: "Purchase Orders", search: "Search PO number, status, vendor", fields: ["poNo", "purchasingOrg", "purchasingGroup", "companyCode", "currency", "documentDate", "deliveryDate", "status", "totalNetValue"], columns: [["PO", "poNo"], ["Company Code", "companyCode"], ["Currency", "currency"], ["Delivery Date", "deliveryDate"], ["Status", "status"], ["Net Value", "totalNetValue"]] },
     InspectionLots: { title: "Inspection Lots", search: "Search lot number or status", fields: ["inspectionLotNo", "inspectionType", "lotQuantity", "acceptedQuantity", "rejectedQuantity", "usageDecisionCode", "rejectionReason", "status"], columns: [["Lot", "inspectionLotNo"], ["Type", "inspectionType"], ["Lot Qty", "lotQuantity"], ["Accepted", "acceptedQuantity"], ["Rejected", "rejectedQuantity"], ["Status", "status"]] },
-    GoodsReceipts: { title: "Goods Receipts", search: "Search GR number, status, plant", fields: ["grNo", "postingDate", "documentDate", "plant", "storageLocation", "batch", "totalGRValue", "status"], columns: [["GR", "grNo"], ["Posting Date", "postingDate"], ["Plant", "plant"], ["Storage", "storageLocation"], ["Value", "totalGRValue"], ["Status", "status"]] },
+    GoodsReceipts: { title: "Goods Receipts", search: "Search GR number, status, plant", fields: ["grNo", "postingDate", "documentDate", "plant", "storageLocation", "batch", "totalValue", "status"], columns: [["GR", "grNo"], ["Posting Date", "postingDate"], ["Plant", "plant"], ["Storage", "storageLocation"], ["Value", "totalValue"], ["Status", "status"]] },
     Invoices: { title: "Supplier Invoices", search: "Search invoice number or status", fields: ["invoiceNo", "invoiceDate", "postingDate", "currency", "paymentTerms", "netAmount", "taxAmount", "totalPayable", "matchStatus", "status"], columns: [["Invoice", "invoiceNo"], ["Invoice Date", "invoiceDate"], ["Currency", "currency"], ["Payable", "totalPayable"], ["Match", "matchStatus"], ["Status", "status"]] },
     PaymentRuns: { title: "Payment Runs", search: "Search payment run ID, status, company code", fields: ["paymentRunId", "runDate", "companyCode", "paymentMethod", "nextPaymentDate", "status", "totalPaymentAmount"], columns: [["Run", "paymentRunId"], ["Run Date", "runDate"], ["Company Code", "companyCode"], ["Method", "paymentMethod"], ["Amount", "totalPaymentAmount"], ["Status", "status"]] }
   };
+  var GENERATED_FIELDS = {
+    Vendors: ["vendorNo"],
+    Materials: ["materialNo"],
+    PurchaseRequisitions: ["prNo"],
+    RFQs: ["rfqNo"],
+    PurchaseOrders: ["poNo"],
+    InspectionLots: ["inspectionLotNo"],
+    GoodsReceipts: ["grNo"],
+    Invoices: ["invoiceNo"],
+    PaymentRuns: ["paymentRunId"]
+  };
+
+  var STATUS_OPTIONS = {
+    Users: ["Active", "Inactive"],
+    Vendors: ["Active", "Blocked"],
+    Materials: ["Active", "Blocked"],
+    PurchaseRequisitions: ["CREATED", "SUBMITTED", "APPROVED", "REJECTED"],
+    RFQs: ["DRAFT", "VENDORS_ASSIGNED", "ISSUED", "QUOTATIONS_RECEIVED", "VENDOR_SELECTED", "PO_CREATED"],
+    PurchaseOrders: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "SENT", "RECEIVED"],
+    InspectionLots: ["OPEN", "PASSED", "FAILED"],
+    GoodsReceipts: ["DRAFT", "POSTED", "REVERSED"],
+    Invoices: ["DRAFT", "VERIFIED", "PAID"],
+    PaymentRuns: ["DRAFT", "PAYMENT_POSTED", "FAILED"]
+  };
 
   return Controller.extend("sap.cap.p2p.listobject.controller.Main", {
-    onInit: function () {
-      if (!Auth.requireAuth("/p2p-list-object/index.html")) {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
+      if (!Auth.requireAuth(Navigation.getAppUrl("LIST_OBJECT"))) {
         return;
       }
 
@@ -68,10 +103,19 @@ sap.ui.define([
         return;
       }
 
-      window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(id);
+      Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(id));
     },
 
-    onCreate: function () {
+    onCreate: async function () {
+      if (this._entity === "PurchaseRequisitions") {
+        try {
+          var response = await fetch("/odata/v4/p2p/Materials");
+          var data = await response.json();
+          this._materials = data.value || [];
+        } catch (e) {
+          this._materials = [];
+        }
+      }
       this._openDialog("Create", {});
     },
 
@@ -113,6 +157,14 @@ sap.ui.define([
           rows = rows.filter(function (row) { return JSON.stringify(row).toLowerCase().indexOf(vendor.toLowerCase()) !== -1; });
         }
 
+        var currentRole = Auth.getSession().role;
+        if (currentRole !== "P2P_ADMIN") {
+          rows = rows.filter(function (row) {
+            if (!row.hasOwnProperty("assignedRole")) return true;
+            return row.assignedRole === currentRole || row.assignedRole === 'COMPLETED' || row.createdBy === Auth.getSession().userId;
+          });
+        }
+
         this._rows = rows;
         this.getView().getModel("list").setProperty("/rows", rows);
       } catch (error) {
@@ -124,11 +176,63 @@ sap.ui.define([
       var inputs = {};
       var box = new VBox({ class: "sapUiSmallMargin p2pDialogForm", width: "24rem" });
 
-      this._config.fields.forEach(function (field) {
-        inputs[field] = new Input({ value: data[field] || "" });
-        box.addItem(new Label({ text: field }));
+      this._editableFields().forEach(function (field) {
+        var labelText = field;
+        if (this._entity === "PurchaseRequisitions") {
+          if (field === "requisitioner") labelText = "Name";
+          if (field === "documentType") labelText = "Materials";
+          if (field === "requestDate") labelText = "Request Date";
+        }
+
+        if (field === "status" || field === "matchStatus" || field === "usageDecisionCode") {
+          var select = new Select({ width: "100%", selectedKey: data[field] || "" });
+          var statuses = [];
+          if (field === "matchStatus") {
+            statuses = ["Pending", "Matched", "Mismatch"];
+          } else if (field === "usageDecisionCode") {
+            statuses = ["", "PASS", "FAIL"];
+          } else {
+            statuses = STATUS_OPTIONS[this._entity] || ["Active", "Inactive"];
+          }
+          if (data[field] && statuses.indexOf(data[field]) === -1) {
+            statuses = statuses.slice();
+            statuses.push(data[field]);
+          }
+          statuses.forEach(function(s) {
+            var text = s;
+            if (s === "PASS") text = "Accept";
+            if (s === "FAIL") text = "Reject";
+            select.addItem(new Item({ key: s, text: text }));
+          });
+          inputs[field] = select;
+        } else if (["requestDate", "submissionDeadline", "documentDate", "deliveryDate", "postingDate", "invoiceDate", "runDate", "nextPaymentDate"].indexOf(field) !== -1) {
+          inputs[field] = new DatePicker({
+            displayFormat: "yyyy-MM-dd",
+            valueFormat: "yyyy-MM-dd",
+            value: data[field] || ""
+          });
+        } else if (this._entity === "PurchaseRequisitions" && field === "documentType") {
+          var matSelect = new Select({ width: "100%", selectedKey: data[field] || "" });
+          matSelect.addItem(new Item({ key: "", text: "Select a Material..." }));
+          (this._materials || []).forEach(function(m) {
+            matSelect.addItem(new Item({ key: m.materialNo, text: m.description + " (" + m.materialNo + ")" }));
+          });
+          matSelect.addItem(new Item({ key: "OTHER", text: "Other (New Material)" }));
+          inputs[field] = matSelect;
+          inputs["_newMaterialName"] = new Input({ visible: false, placeholder: "Enter new material name" });
+          matSelect.attachChange(function(oEvent) {
+            var key = oEvent.getParameter("selectedItem").getKey();
+            inputs["_newMaterialName"].setVisible(key === "OTHER");
+          });
+        } else {
+          inputs[field] = new Input({ value: data[field] || "" });
+        }
+        box.addItem(new Label({ text: labelText }));
         box.addItem(inputs[field]);
-      });
+        if (this._entity === "PurchaseRequisitions" && field === "documentType") {
+          box.addItem(inputs["_newMaterialName"]);
+        }
+      }.bind(this));
 
       var dialog = new Dialog({
         title: mode + " " + this._config.title,
@@ -138,12 +242,42 @@ sap.ui.define([
           type: "Emphasized",
           press: async function () {
             var payload = {};
-            this._config.fields.forEach(function (field) {
-              var value = inputs[field].getValue();
-              if (value !== "") {
+            if (this._entity === "PurchaseRequisitions" && inputs["documentType"] && inputs["documentType"].getSelectedKey() === "OTHER") {
+              var newMatName = inputs["_newMaterialName"].getValue();
+              if (!newMatName) {
+                MessageBox.error("Please enter a new material name.");
+                return;
+              }
+              var newMatNo = "MAT-" + Math.floor(Math.random() * 100000);
+              try {
+                await fetch("/odata/v4/p2p/Materials", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ materialNo: newMatNo, description: newMatName, status: "Active" })
+                });
+                payload["documentType"] = newMatNo;
+              } catch (e) {
+                MessageBox.error("Failed to create new material.");
+                return;
+              }
+            }
+            this._editableFields().forEach(function (field) {
+              var value;
+              if (field === "status" || field === "matchStatus" || field === "usageDecisionCode" || (this._entity === "PurchaseRequisitions" && field === "documentType")) {
+                if (this._entity === "PurchaseRequisitions" && field === "documentType" && inputs[field].getSelectedKey() === "OTHER") {
+                  value = payload["documentType"];
+                } else {
+                  value = inputs[field].getSelectedKey();
+                }
+              } else if (["requestDate", "submissionDeadline", "documentDate", "deliveryDate", "postingDate", "invoiceDate", "runDate", "nextPaymentDate"].indexOf(field) !== -1) {
+                value = inputs[field].getValue();
+              } else {
+                value = inputs[field].getValue();
+              }
+              if (value !== "" && value !== undefined) {
                 payload[field] = value;
               }
-            });
+            }.bind(this));
             await this._create(payload);
             dialog.close();
           }.bind(this)
@@ -167,11 +301,27 @@ sap.ui.define([
           throw new Error("Create failed.");
         }
 
+        var responseData = await response.json();
+        var newId = responseData.ID || (responseData.value && responseData.value.ID);
+
         MessageToast.show("Created");
-        this._loadRows();
+        
+        if (newId) {
+          Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(this._entity) + "/" + encodeURIComponent(newId));
+        } else {
+          this._loadRows();
+        }
       } catch (error) {
         MessageBox.error(error.message || "Create failed.");
       }
+    },
+
+    _editableFields: function () {
+      var generated = (GENERATED_FIELDS[this._entity] || []).concat(["status"]);
+
+      return this._config.fields.filter(function (field) {
+        return generated.indexOf(field) === -1;
+      });
     }
   });
 });

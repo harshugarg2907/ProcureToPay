@@ -1,6 +1,15 @@
 {
-  "welcomeFile": "/home/index.html",
   "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/logout",
+    "logoutPage": "/logged-out.html"
+  },
+  "errorPage": [
+    {
+      "status": 404,
+      "file": "./not-found.html"
+    }
+  ],
   "routes": [
     {
       "source": "^/odata/(.*)$",
@@ -8,6 +17,18 @@
       "destination": "srv-api",
       "authenticationType": "xsuaa",
       "csrfProtection": false
+    },
+    {
+      "source": "^/not-found\\.html$",
+      "localDir": ".",
+      "target": "not-found.html",
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/logged-out\\.html$",
+      "localDir": ".",
+      "target": "logged-out.html",
+      "authenticationType": "none"
     },
     {
       "source": "^/(.*)$",

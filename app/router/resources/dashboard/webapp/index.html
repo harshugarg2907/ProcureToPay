@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Dashboard</title>
+    <link rel="stylesheet" href="./dashboard.css">
+    <script src="/common/browser-auth.js"></script>
+    <script src="./dashboard.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Procure to Pay</p>
+        <h1>P2P Dashboard</h1>
+      </div>
+      <div class="p2p-header-actions"></div>
+    </header>
+    <main class="page">
+      <section class="tiles" aria-label="Navigation">
+        <a class="tile" href="/procurement-pages/index.html"><span>Procurement</span><strong>PR, RFQ, PO lists</strong></a>
+        <a class="tile" href="/p2p-list-object/index.html?entity=Vendors"><span>Vendor Master</span><strong>Vendors, materials, orders</strong></a>
+      </section>
+      <section class="grid">
+        <article>
+          <h2>Purchase Orders by Status</h2>
+          <table><thead><tr><th>Status</th><th>Total</th></tr></thead><tbody id="poStatusBody"></tbody></table>
+        </article>
+        <article>
+          <h2>Vendor Spend</h2>
+          <table><thead><tr><th>Vendor</th><th>Spend</th></tr></thead><tbody id="vendorSpendBody"></tbody></table>
+        </article>
+      </section>
+      <p id="message" class="message"></p>
+    </main>
+  </body>
+</html>

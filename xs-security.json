@@ -3,71 +3,82 @@
   "tenant-mode": "dedicated",
   "scopes": [
     {
-      "name": "$XSAPPNAME.Admin",
-      "description": "Admin access"
+      "name": "$XSAPPNAME.P2P_ADMIN",
+      "description": "Full Procure-to-Pay administration access"
     },
     {
-      "name": "$XSAPPNAME.ProcurementOfficer",
-      "description": "Procurement access"
+      "name": "$XSAPPNAME.P2P_BUYER",
+      "description": "Buyer access for requisitions, RFQs, purchase orders, vendors, and materials"
     },
     {
-      "name": "$XSAPPNAME.QCInspector",
+      "name": "$XSAPPNAME.P2P_REQUESTER",
+      "description": "Requester access for purchase requisitions"
+    },
+    {
+      "name": "$XSAPPNAME.P2P_VENDOR_MANAGER",
+      "description": "Vendor and supplier master data access"
+    },
+    {
+      "name": "$XSAPPNAME.P2P_QUALITY_INSPECTOR",
       "description": "Quality inspection access"
     },
     {
-      "name": "$XSAPPNAME.GoodsReceiptOfficer",
-      "description": "Goods receipt access"
+      "name": "$XSAPPNAME.P2P_AP_CLERK",
+      "description": "Accounts payable invoice verification access"
     },
     {
-      "name": "$XSAPPNAME.FinanceOfficer",
-      "description": "Finance access"
-    },
-    {
-      "name": "$XSAPPNAME.Viewer",
-      "description": "Read-only access"
+      "name": "$XSAPPNAME.P2P_FINANCE_MANAGER",
+      "description": "Payment processing and finance approval access"
     }
   ],
   "role-templates": [
     {
-      "name": "Admin",
-      "description": "Admin",
+      "name": "P2P_ADMIN",
+      "description": "Procure-to-Pay Administrator",
       "scope-references": [
-        "$XSAPPNAME.Admin"
+        "$XSAPPNAME.P2P_ADMIN"
       ]
     },
     {
-      "name": "ProcurementOfficer",
-      "description": "Procurement Officer",
+      "name": "P2P_BUYER",
+      "description": "Procure-to-Pay Buyer",
       "scope-references": [
-        "$XSAPPNAME.ProcurementOfficer"
+        "$XSAPPNAME.P2P_BUYER"
       ]
     },
     {
-      "name": "QCInspector",
-      "description": "QC Inspector",
+      "name": "P2P_REQUESTER",
+      "description": "Procure-to-Pay Requester",
       "scope-references": [
-        "$XSAPPNAME.QCInspector"
+        "$XSAPPNAME.P2P_REQUESTER"
       ]
     },
     {
-      "name": "GoodsReceiptOfficer",
-      "description": "Goods Receipt Officer",
+      "name": "P2P_VENDOR_MANAGER",
+      "description": "Procure-to-Pay Vendor Manager",
       "scope-references": [
-        "$XSAPPNAME.GoodsReceiptOfficer"
+        "$XSAPPNAME.P2P_VENDOR_MANAGER"
       ]
     },
     {
-      "name": "FinanceOfficer",
-      "description": "Finance Officer",
+      "name": "P2P_QUALITY_INSPECTOR",
+      "description": "Procure-to-Pay Quality Inspector",
       "scope-references": [
-        "$XSAPPNAME.FinanceOfficer"
+        "$XSAPPNAME.P2P_QUALITY_INSPECTOR"
       ]
     },
     {
-      "name": "Viewer",
-      "description": "Viewer",
+      "name": "P2P_AP_CLERK",
+      "description": "Procure-to-Pay Accounts Payable Clerk",
       "scope-references": [
-        "$XSAPPNAME.Viewer"
+        "$XSAPPNAME.P2P_AP_CLERK"
+      ]
+    },
+    {
+      "name": "P2P_FINANCE_MANAGER",
+      "description": "Procure-to-Pay Finance Manager",
+      "scope-references": [
+        "$XSAPPNAME.P2P_FINANCE_MANAGER"
       ]
     }
   ],

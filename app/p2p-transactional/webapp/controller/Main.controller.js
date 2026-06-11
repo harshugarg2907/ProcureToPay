@@ -5,13 +5,21 @@ sap.ui.define([
   "sap/m/MessageBox",
   "p2p/common/Auth",
   "p2p/common/Header",
-  "p2p/common/RoleAccess"
-], function (Controller, JSONModel, MessageToast, MessageBox, Auth, Header, RoleAccess) {
+  "p2p/common/RoleAccess",
+  "p2p/common/Navigation"
+], function (Controller, JSONModel, MessageToast, MessageBox, Auth, Header, RoleAccess, Navigation) {
   "use strict";
 
   return Controller.extend("sap.cap.p2p.transactional.controller.Main", {
-    onInit: function () {
-      if (!Auth.requireAuth("/p2p-transactional/index.html")) {
+    onInit: async function () {
+      try {
+        await Auth.loadSession();
+      } catch (error) {
+        MessageBox.error(error.message || "Unable to load your BTP user session.");
+        return;
+      }
+
+      if (!Auth.requireAuth(Navigation.getAppUrl("TRANSACTIONAL"))) {
         return;
       }
 
@@ -116,7 +124,7 @@ sap.ui.define([
         return;
       }
 
-      window.location.href = "/p2p-object-pages/index.html#/object/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id);
+      Navigation.navigate("OBJECT_PAGE", "#/object/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id));
     },
 
     _invokeWithContext: async function (path, parameterName, context, successText) {
@@ -127,11 +135,39 @@ sap.ui.define([
 
       try {
         var object = await context.requestObject();
-        var binding = this.getView().getModel().bindContext(path);
-        binding.setParameter(parameterName, object.ID);
-        await binding.invoke("$direct");
-        MessageToast.show(successText);
-        this.getView().getModel().refresh();
+        var actionName = path.replace("/", "").replace("(...)", "");
+        
+        var payload = {};
+        payload[parameterName] = object.ID;
+
+        var response = await fetch("/odata/v4/p2p/" + actionName, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error("Action failed.");
+        }
+
+        var responseText = await response.text();
+        var jsonResponse = responseText ? JSON.parse(responseText) : {};
+        if (jsonResponse.value) jsonResponse = JSON.parse(jsonResponse.value);
+        
+        if (jsonResponse.message) {
+          var msg = jsonResponse.message;
+          if (jsonResponse.nextAssignedRole && jsonResponse.nextAssignedRole !== "NONE" && jsonResponse.nextAssignedRole !== "COMPLETED") {
+            msg += "\n\nTask forwarded to: " + jsonResponse.nextAssignedRole;
+          }
+          MessageBox.success(msg, {
+            onClose: function () {
+              this.getView().getModel().refresh();
+            }.bind(this)
+          });
+        } else {
+          MessageToast.show(successText);
+          this.getView().getModel().refresh();
+        }
       } catch (error) {
         MessageBox.error(error.message || "Action failed");
       }

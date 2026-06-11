@@ -1,0 +1,41 @@
+{
+  "_version": "2.0.0",
+  "sap.app": {
+    "id": "p2p.home",
+    "type": "application",
+    "title": "P2P Home",
+    "description": "Procure-to-Pay home dashboard",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.136.0",
+      "libs": {
+        "sap.f": {},
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "models": {},
+    "rootView": {
+      "viewName": "p2p.home.view.Home",
+      "type": "XML",
+      "id": "Home"
+    }
+  }
+}

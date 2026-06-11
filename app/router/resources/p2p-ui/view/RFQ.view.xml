@@ -1,0 +1,28 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.RFQ">
+  <Page title="Request for Quotation" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Button text="Create RFQ" type="Emphasized" press=".onCreateRFQ" class="sapUiSmallMarginBottom" />
+      <Table inset="false" items="{/RFQs}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Active RFQs" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="RFQ Number" /></Column>
+          <Column><Text text="Status" /></Column>
+          <Column><Text text="Deadline" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{rfqNo}" />
+              <Text text="{status}" />
+              <Text text="{submissionDeadline}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

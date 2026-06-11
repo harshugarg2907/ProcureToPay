@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.PaymentRun">
+  <Page title="Payment Run" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/PaymentRuns}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Payment Run History" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="Run ID" /></Column>
+          <Column><Text text="Status" /></Column>
+          <Column><Text text="Total Amount" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{paymentRunId}" />
+              <Text text="{status}" />
+              <Text text="{totalPaymentAmount}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>

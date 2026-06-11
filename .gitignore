@@ -30,7 +30,7 @@ default-services.json
 
 # UI5 build output
 dist/
-resources/
+# resources/
 test-resources/
 
 # Test and coverage output

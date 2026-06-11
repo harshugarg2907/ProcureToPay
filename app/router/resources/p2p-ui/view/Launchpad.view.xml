@@ -1,0 +1,69 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core" controllerName="sap.cap.p2p.ui.controller.Launchpad">
+  <Page title="Launchpad" showNavButton="false" class="sapUiResponsivePadding">
+    <headerContent>
+      <Button icon="sap-icon://action" text="My Profile" press=".onProfile" />
+    </headerContent>
+    <content>
+      <VBox class="sapUiSmallMargin">
+        <ObjectHeader title="Welcome" number="{session>/currentUser/fullName}" numberUnit="{session>/currentUser/userId}">
+          <attributes>
+            <ObjectAttribute text="Company: {session>/currentUser/companyCode}" />
+            <ObjectAttribute text="Cost Center: {session>/currentUser/costCenter}" />
+          </attributes>
+        </ObjectHeader>
+        <FlexBox width="100%" wrap="Wrap" renderType="Bare" gap="1rem" class="sapUiMediumMarginTop">
+          <GenericTile header="Purchase Requisitions" subheader="Create and manage PRs" press=".onNavigateToPR">
+            <TileContent>
+              <NumericContent value="12" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="RFQs" subheader="Manage quotations" press=".onNavigateToRFQ">
+            <TileContent>
+              <NumericContent value="6" indicator="Down" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Vendor Master" subheader="Vendor records" press=".onNavigateToVendors">
+            <TileContent>
+              <NumericContent value="24" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Materials" subheader="Material catalog" press=".onNavigateToMaterials">
+            <TileContent>
+              <NumericContent value="48" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Purchase Orders" subheader="Review POs" press=".onNavigateToPO">
+            <TileContent>
+              <NumericContent value="8" indicator="Down" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Quality Inspection" subheader="QC tasks" press=".onNavigateToQC">
+            <TileContent>
+              <NumericContent value="5" indicator="Down" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Goods Receipt" subheader="Post receipts" press=".onNavigateToGR">
+            <TileContent>
+              <NumericContent value="7" indicator="None" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Invoice Verification" subheader="Verify invoices" press=".onNavigateToInvoice">
+            <TileContent>
+              <NumericContent value="4" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Payment Run" subheader="Manage payments" press=".onNavigateToPayment">
+            <TileContent>
+              <NumericContent value="2" indicator="None" />
+            </TileContent>
+          </GenericTile>
+          <GenericTile header="Analytics" subheader="View dashboards" press=".onNavigateToAnalytics">
+            <TileContent>
+              <NumericContent value="9" indicator="Up" />
+            </TileContent>
+          </GenericTile>
+        </FlexBox>
+      </VBox>
+    </content>
+  </Page>
+</mvc:View>

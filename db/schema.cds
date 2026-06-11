@@ -64,6 +64,7 @@ entity PurchaseRequisitions : cuid, managed {
   requestDate   : Date;
   status        : String(30);
   totalItems    : Integer;
+  assignedRole  : String(50);
   items         : Composition of many PurchaseRequisitionItems on items.requisition = $self;
 }
 
@@ -88,6 +89,7 @@ entity RFQs : cuid, managed {
   submissionDeadline : Date;
   status          : String(30);
   selectedVendor  : Association to Vendors;
+  assignedRole    : String(50);
   vendors         : Composition of many RFQVendors on vendors.rfq = $self;
   items           : Composition of many RFQItems on items.rfq = $self;
 }
@@ -98,6 +100,9 @@ entity RFQVendors : cuid, managed {
   email     : String(100);
   sentStatus : String(20);
   responseStatus : String(30);
+  quotedAmount : Decimal(15,2);
+  leadTime     : Integer;
+  remarks      : String(200);
 }
 
 entity RFQItems : cuid, managed {
@@ -111,6 +116,8 @@ entity RFQItems : cuid, managed {
 entity PurchaseOrders : cuid, managed {
   poNo            : String(30);
   sourceRFQ       : Association to RFQs;
+  rfq_ID          : String(30);
+  sourcePR        : Association to PurchaseRequisitions;
   vendor          : Association to Vendors;
   purchasingOrg   : String(10);
   purchasingGroup : String(10);
@@ -120,6 +127,7 @@ entity PurchaseOrders : cuid, managed {
   deliveryDate    : Date;
   status          : String(30);
   totalNetValue   : Decimal(15,2);
+  assignedRole    : String(50);
   items           : Composition of many PurchaseOrderItems on items.purchaseOrder = $self;
 }
 
@@ -147,6 +155,7 @@ entity InspectionLots : cuid, managed {
   usageDecisionCode : String(20);
   rejectionReason : String(200);
   status          : String(30);
+  assignedRole    : String(50);
   characteristics : Composition of many InspectionCharacteristics on characteristics.inspectionLot = $self;
 }
 
@@ -170,6 +179,7 @@ entity GoodsReceipts : cuid, managed {
   batch           : String(30);
   totalGRValue    : Decimal(15,2);
   status          : String(30);
+  assignedRole    : String(50);
   items           : Composition of many GoodsReceiptItems on items.goodsReceipt = $self;
 }
 
@@ -199,6 +209,7 @@ entity Invoices : cuid, managed {
   dueDate         : Date;
   matchStatus     : String(30);
   status          : String(30);
+  assignedRole    : String(50);
 }
 
 entity PaymentRuns : cuid, managed {
@@ -209,6 +220,7 @@ entity PaymentRuns : cuid, managed {
   nextPaymentDate : Date;
   status          : String(30);
   totalPaymentAmount : Decimal(15,2);
+  assignedRole    : String(50);
   items           : Composition of many PaymentRunItems on items.paymentRun = $self;
 }
 

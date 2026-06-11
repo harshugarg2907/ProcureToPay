@@ -7,7 +7,6 @@ const resourcesRoot = path.join(appRoot, "router", "resources");
 
 const copies = [
   { from: "common/webapp", to: "common" },
-  { from: "login-page/webapp", to: "login-page" },
   { from: "home", to: "home" },
   { from: "dashboard", to: "dashboard" },
   { from: "procurement-pages", to: "procurement-pages" },

@@ -1,0 +1,27 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sap.cap.p2p.ui.controller.PurchaseOrder">
+  <Page title="Purchase Orders" class="sapUiResponsivePadding" showNavButton="true" navButtonPress=".onNavBack">
+    <content>
+      <Table inset="false" items="{/PurchaseOrders}">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Purchase Orders" />
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column><Text text="PO No." /></Column>
+          <Column><Text text="Vendor" /></Column>
+          <Column><Text text="Status" /></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{poNo}" />
+              <Text text="{vendor/name}" />
+              <Text text="{status}" />
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>
